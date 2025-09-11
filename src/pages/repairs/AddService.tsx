@@ -36,7 +36,6 @@ import { toast } from 'sonner'
 import ProductCard from '@/components/ProductCard'
 import ProductSearch from '@/components/ProductSearch'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
-import { useGetAllRentProductsQuery } from '@/store/product/product.api'
 
 // Service schema based on the image design
 const addServiceSchema = z.object({
@@ -58,14 +57,11 @@ export default function AddService() {
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [paymentDate, setPaymentDate] = useState<Date>()
-  const { data: rentProduct } = useGetAllRentProductsQuery({})
 
   // Product state management
   const [selectedProducts, setSelectedProducts] = useState<{
     [productId: string]: { product: ProductWarehouseItem; quantity: number }
   }>({})
-
-  console.log(rentProduct?.data)
 
   // API queries
   const { data: mechanicsData } = useGetAllMechanicsQuery({
