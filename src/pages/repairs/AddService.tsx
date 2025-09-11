@@ -39,25 +39,15 @@ import type { ProductWarehouseItem } from '@/store/product/types.d'
 
 // Service schema based on the image design
 const addServiceSchema = z.object({
-  client_name: z
-    .string({ required_error: 'Mijoz ismini kiriting' })
-    .min(2, 'Mijoz ismi kamida 2 ta belgi'),
-  cash_amount: z
-    .number({ required_error: 'Naqd miqdorini kiriting' })
-    .min(0, "Naqd miqdor manfiy bo'lmasligi kerak"),
+  client_name: z.string().min(2, 'Mijoz ismi kamida 2 ta belgi'),
+  cash_amount: z.number().min(0, "Naqd miqdor manfiy bo'lmasligi kerak"),
   terminal_amount: z
-    .number({ required_error: 'Terminal miqdorini kiriting' })
+    .number()
     .min(0, "Terminal miqdor manfiy bo'lmasligi kerak"),
-  mechanic: z.string({ required_error: 'Ustani tanlang' }).min(1, 'Usta shart'),
-  service_date: z
-    .string({ required_error: "Xizmat ko'rsatilgan sanani kiriting" })
-    .min(1, 'Sana shart'),
-  time_spent: z
-    .string({ required_error: 'Ketgan vaqtni kiriting' })
-    .min(1, 'Ketgan vaqt shart'),
-  service_price: z
-    .number({ required_error: 'Xizmat narxini kiriting' })
-    .min(0, "Xizmat narxi manfiy bo'lmasligi kerak"),
+  mechanic: z.string().min(1, 'Usta shart'),
+  service_date: z.string().min(1, 'Sana shart'),
+  time_spent: z.string().min(1, 'Ketgan vaqt shart'),
+  service_price: z.number().min(0, "Xizmat narxi manfiy bo'lmasligi kerak"),
 })
 
 type AddServiceValues = z.infer<typeof addServiceSchema>
