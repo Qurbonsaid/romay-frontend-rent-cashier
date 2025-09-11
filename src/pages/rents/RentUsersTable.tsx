@@ -38,7 +38,9 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
   const [pageSize] = useState(10)
   const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [selectedClient, setSelectedClient] = useState<string>('')
-  const [selectedStatus, setSelectedStatus] = useState<RentStatus | ''>('')
+  const [selectedStatus, setSelectedStatus] = useState<RentStatus | '' | 'all'>(
+    ''
+  )
   const [searchTerm, setSearchTerm] = useState('')
 
   // Check permissions for rent operations
@@ -62,8 +64,11 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
   } = useGetAllRentsQuery(
     {
       branch: selectedBranch || undefined,
-      client: selectedClient || undefined,
-      status: selectedStatus || undefined,
+      client:
+        selectedClient === 'all' ? undefined : selectedClient || undefined,
+      status:
+        selectedStatus === 'all' ? undefined : selectedStatus || undefined,
+
       search: searchTerm || undefined,
       page: currentPage,
       limit: pageSize,
@@ -142,7 +147,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
               <SelectValue placeholder="Holatni tanlang" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value=" ">Barcha holatlar</SelectItem>
+              <SelectItem value="all">Barcha holatlar</SelectItem>
               <SelectItem value="IN_PROGRESS">Jarayonda</SelectItem>
               <SelectItem value="COMPLETED">Tugallangan</SelectItem>
               <SelectItem value="CANCELLED">Bekor qilingan</SelectItem>
@@ -155,7 +160,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
                 <SelectValue placeholder="Filialni tanlang" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value=" ">Barcha filiallar</SelectItem>
+                <SelectItem value="all">Barcha filiallar</SelectItem>
                 {branchesData?.data.map((branch) => (
                   <SelectItem key={branch._id} value={branch._id}>
                     {branch.name}
@@ -170,7 +175,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
               <SelectValue placeholder="Mijozni tanlang" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value=" ">Barcha mijozlar</SelectItem>
+              <SelectItem value="all">Barcha mijozlar</SelectItem>
               {clientsData?.data.map((client: Client) => (
                 <SelectItem key={client._id} value={client._id}>
                   {client.username}

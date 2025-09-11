@@ -13,7 +13,7 @@ export const productApi = baseApi.injectEndpoints({
       GetAllProductsRequest
     >({
       query: (params) => ({
-        url: '/warehouse/sale-product/get-all',
+        url: '/product/sale-product/get-all',
         method: 'GET',
         params,
       }),

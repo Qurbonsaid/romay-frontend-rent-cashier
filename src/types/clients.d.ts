@@ -11,4 +11,11 @@ export interface Client {
     address: string
   }
   address: string
+  debt: {
+    amount: number
+    currency: string
+  }
+  customer_tier: string
+  created_at: string
+  updated_at: string
 }

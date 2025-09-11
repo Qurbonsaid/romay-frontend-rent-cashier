@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 export interface ClientResponse {
+  success: boolean
   data: Client[]
+  pagination: {
+    total: number
+    total_pages: number
+    page: number
+    limit: number
+    next_page: boolean
+    prev_page: boolean
+  }
 }
 
 export interface ClientRequest {
