@@ -15,6 +15,12 @@ export default tseslint.config([
       reactHooks.configs['recommended-latest'],
       reactRefresh.configs.vite,
     ],
+    rules: {
+      // allow any
+      '@typescript-eslint/no-explicit-any': 'off',
+      // allow non-null assertions
+      '@typescript-eslint/no-non-null-assertion': 'off',
+    },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,

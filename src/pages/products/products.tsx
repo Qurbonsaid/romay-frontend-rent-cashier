@@ -86,19 +86,13 @@ function ProductPage() {
     name: z.string().min(2, 'Kamida 2 ta belgi kiriting'),
     category: z.string().min(1, 'Kategoriya majburiy'),
     sku: z.string().min(4, 'Bar-kod kamida 4 ta belgi'),
-    price: z
-      .union([z.string(), z.number()])
-      .transform((v) => Number(String(v).replace(/[^0-9.]/g, '')))
-      .refine((v) => v > 0, "Narxi 0 dan katta bo'lishi kerak"),
-    minQty: z
-      .union([z.string(), z.number()])
-      .transform((v) => Number(String(v).replace(/[^0-9]/g, '')))
-      .refine((v) => v >= 0, "Minimal miqdor manfiy bo'lmasin"),
+    price: z.number().min(0.01, "Narxi 0 dan katta bo'lishi kerak"),
+    minQty: z.number().min(0, "Minimal miqdor manfiy bo'lmasin"),
+    currency: z.string().min(1, 'Valyuta majburiy'),
+    status: z.string().min(1, 'Status majburiy'),
+    note: z.string().min(1, 'Izoh majburiy'),
     image: z.any().optional(),
     subtitle: z.string().optional(),
-    currency: z.string().default('UZS'),
-    status: z.string().default('Active'),
-    note: z.string().min(1, 'Izoh majburiy'),
   })
 
   type FormValues = z.infer<typeof formSchema>
@@ -109,8 +103,8 @@ function ProductPage() {
       name: '',
       category: '',
       sku: '',
-      price: '' as unknown as number,
-      minQty: 0 as unknown as number,
+      price: 0,
+      minQty: 0,
       image: undefined,
       subtitle: '',
       currency: 'UZS',

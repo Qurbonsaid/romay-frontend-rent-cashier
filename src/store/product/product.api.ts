@@ -37,7 +37,7 @@ export const productApi = baseApi.injectEndpoints({
       { page?: number; limit?: number; search?: string }
     >({
       query: (params) => ({
-        url: '/product/sale-product/get-all',
+        url: '/product/rent-product/get-all',
         method: 'GET',
         params,
       }),

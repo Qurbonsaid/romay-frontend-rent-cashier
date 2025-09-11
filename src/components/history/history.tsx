@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { HistoryDetails } from '../../pages/birthday/history-details'
+// import { useState } from 'react'
+// import { HistoryDetails } from '../../pages/birthday/history-details'
 import { useGetHistoryQuery } from '@/store/history/history.api'
 import dayjs from 'dayjs'
 import { TableSkeleton } from '../ui/table-skeleton'
@@ -8,18 +8,20 @@ import { cn } from '@/lib/utils'
 import type { History } from '@/types/history'
 
 export default function History() {
-  const [selectedHistory, setSelectedHistory] = useState<History | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  // TODO: Uncomment when HistoryDetails component is ready
+  // const [selectedHistory, setSelectedHistory] = useState<History | null>(null)
+  // const [isModalOpen, setIsModalOpen] = useState(false)
   const {
     data: { data: history = [] } = {},
     isLoading,
     isError,
   } = useGetHistoryQuery({})
 
-  const closeModal = () => {
-    setIsModalOpen(false)
-    setSelectedHistory(null)
-  }
+  // TODO: Uncomment when HistoryDetails component is ready
+  // const closeModal = () => {
+  //   setIsModalOpen(false)
+  //   setSelectedHistory(null)
+  // }
 
   if (isLoading) {
     return <TableSkeleton rows={5} columns={4} />
@@ -88,8 +90,10 @@ export default function History() {
                 key={item._id}
                 className="hover:bg-[#F9F9F9] cursor-pointer transition-colors"
                 onClick={() => {
-                  setSelectedHistory(item as History)
-                  setIsModalOpen(true)
+                  // TODO: Uncomment when HistoryDetails component is ready
+                  // setSelectedHistory(item as History)
+                  // setIsModalOpen(true)
+                  console.log('History item clicked:', item)
                 }}
               >
                 <td className="px-6 py-4 text-sm text-[#18181B]">
@@ -121,11 +125,11 @@ export default function History() {
         </table>
       </div>
 
-      <HistoryDetails
+      {/* <HistoryDetails
         isOpen={isModalOpen}
         onClose={closeModal}
         historyItem={selectedHistory}
-      />
+      /> */}
     </div>
   )
 }

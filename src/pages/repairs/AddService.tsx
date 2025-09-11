@@ -36,6 +36,7 @@ import { toast } from 'sonner'
 import ProductCard from '@/components/ProductCard'
 import ProductSearch from '@/components/ProductSearch'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
+import { useGetAllRentProductsQuery } from '@/store/product/product.api'
 
 // Service schema based on the image design
 const addServiceSchema = z.object({
@@ -57,11 +58,14 @@ export default function AddService() {
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [paymentDate, setPaymentDate] = useState<Date>()
+  const { data: rentProduct } = useGetAllRentProductsQuery({})
 
   // Product state management
   const [selectedProducts, setSelectedProducts] = useState<{
     [productId: string]: { product: ProductWarehouseItem; quantity: number }
   }>({})
+
+  console.log(rentProduct?.data)
 
   // API queries
   const { data: mechanicsData } = useGetAllMechanicsQuery({
@@ -226,6 +230,7 @@ export default function AddService() {
             )}
           </div>
         </div>
+
         <div className="flex gap-6 mt-6">
           {/* Left Form */}
           <div className="flex-1 space-y-6">
@@ -396,7 +401,6 @@ export default function AddService() {
                     )}
                   />
 
-                  {/* Row 5: Ketgan vaqt and Xizmat narxi */}
                   <FormField
                     control={form.control}
                     name="service_end_date"
@@ -437,27 +441,6 @@ export default function AddService() {
                             />
                           </PopoverContent>
                         </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Row 5: Ketgan vaqt and Xizmat narxi */}
-                  <FormField
-                    control={form.control}
-                    name="time_spent"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-sm font-medium">
-                          Ketgan vaqt
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Ketgan vaqtni kiriting"
-                            className="h-10"
-                            {...field}
-                          />
-                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

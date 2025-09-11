@@ -7,6 +7,8 @@ import Repairs from './pages/repairs/repairs'
 import RepairDetails from './pages/repairs/repairDetails'
 import AddService from './pages/repairs/AddService'
 import ProductPage from './pages/products/products'
+import Rents from './pages/rents/rents'
+import AddRent from './pages/rents/AddRent'
 
 export const AppRouter = () => {
   return (
@@ -32,6 +34,12 @@ export const AppRouter = () => {
       </Route>
       <Route path="products" element={<PrivateRoute />}>
         <Route index element={<ProductPage />}></Route>
+      </Route>
+      <Route path="rents" element={<PrivateRoute />}>
+        <Route index element={<Rents />}></Route>
+      </Route>
+      <Route path="rents/add" element={<PrivateRoute />}>
+        <Route index element={<AddRent />}></Route>
       </Route>
     </Routes>
   )

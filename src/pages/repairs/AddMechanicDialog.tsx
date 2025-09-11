@@ -34,15 +34,9 @@ import { useGetUser } from '@/hooks/useGetUser'
 
 // Mechanic schema
 const addMechanicSchema = z.object({
-  fullName: z
-    .string({ required_error: "To'liq ismni kiriting" })
-    .min(2, "To'liq ism kamida 2 ta belgi"),
-  phone: z
-    .string({ required_error: 'Telefon raqamini kiriting' })
-    .regex(/^\+?\d[\d\s-]{7,}$/g, "Raqam formati noto'g'ri"),
-  work_type: z.enum(['SERVICE', 'FIELD_SERVICE'], {
-    required_error: 'Ish turini tanlang',
-  }),
+  fullName: z.string().min(2, "To'liq ism kamida 2 ta belgi"),
+  phone: z.string().regex(/^\+?\d[\d\s-]{7,}$/g, "Raqam formati noto'g'ri"),
+  work_type: z.enum(['SERVICE', 'FIELD_SERVICE']),
   branch_id: z.string().optional(),
 })
 
