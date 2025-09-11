@@ -96,8 +96,8 @@ function Clients() {
                 <th className="px-6 py-3 text-left font-medium">
                   Telefon raqami
                 </th>
-                <th className="px-6 py-3 text-left font-medium">Segment</th>
-                <th className="px-6 py-3 text-left font-medium">Balans</th>
+                <th className="px-6 py-3 text-left font-medium">Darajasi</th>
+                <th className="px-6 py-3 text-left font-medium">Qarz</th>
                 <th className="px-6 py-3 text-center font-medium">
                   Buyurtmalar soni
                 </th>
@@ -107,20 +107,20 @@ function Clients() {
             <tbody className="divide-y divide-[#E4E4E7]">
               {clientsData?.map((c) => (
                 <tr
-                  key={c.id}
+                  key={c._id}
                   className="hover:bg-[#F9F9F9] cursor-pointer"
                   onClick={() =>
-                    (window.location.href = `/ceo/customers/customer-detail/${c.id}`)
+                    (window.location.href = `/ceo/customers/customer-detail/${c._id}`)
                   }
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-[#18181B]">
                       <Link
-                        to={`/manager/clients/${c.id}`}
+                        to={`/manager/clients/${c._id}`}
                         className="hover:underline"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {c.name}
+                        {c.username}
                       </Link>
                     </div>
                   </td>
@@ -131,22 +131,22 @@ function Clients() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-[#18181B]">
-                      {c.profession || 'Mavjud emas'}
+                      {c.customer_tier || 'Mavjud emas'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm">
-                      <BalanceCell value={c.balance} />
+                      <BalanceCell value={c.debt?.amount || 0} />
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
-                      {c.orders || 0}
+                      {/* Orders count not available in API response */}0
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
-                      {c.branch?.name || "Noma'lum"}
+                      {c.branch_id?.name || "Noma'lum"}
                     </div>
                   </td>
                 </tr>
