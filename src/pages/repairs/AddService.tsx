@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { CalendarIcon, ArrowLeft, Printer, Navigation } from 'lucide-react'
+import { CalendarIcon, ArrowLeft, Navigation } from 'lucide-react'
 import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
@@ -46,6 +46,7 @@ const addServiceSchema = z.object({
     .min(0, "Terminal miqdor manfiy bo'lmasligi kerak"),
   mechanic: z.string().min(1, 'Usta shart'),
   service_date: z.string().min(1, 'Sana shart'),
+  service_end_date: z.string().min(1, 'Sana shart'),
   time_spent: z.string().min(1, 'Ketgan vaqt shart'),
   service_price: z.number().min(0, "Xizmat narxi manfiy bo'lmasligi kerak"),
 })
@@ -79,6 +80,7 @@ export default function AddService() {
       terminal_amount: 0,
       mechanic: '',
       service_date: '',
+      service_end_date: '',
       time_spent: '',
       service_price: 0,
     },
@@ -397,6 +399,52 @@ export default function AddService() {
                   {/* Row 5: Ketgan vaqt and Xizmat narxi */}
                   <FormField
                     control={form.control}
+                    name="service_end_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm font-medium">
+                          Xizmat ko'rsatilishi tugatiladigan sana
+                        </FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  'w-full h-10 justify-start text-left font-normal',
+                                  !field.value && 'text-muted-foreground'
+                                )}
+                              >
+                                {field.value ? (
+                                  format(new Date(field.value), 'dd.MM.yyyy')
+                                ) : (
+                                  <span>10.08.2025</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={
+                                field.value ? new Date(field.value) : undefined
+                              }
+                              onSelect={(date) => {
+                                field.onChange(date ? date.toISOString() : '')
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Row 5: Ketgan vaqt and Xizmat narxi */}
+                  <FormField
+                    control={form.control}
                     name="time_spent"
                     render={({ field }) => (
                       <FormItem>
@@ -563,17 +611,10 @@ export default function AddService() {
               {/* Action Buttons */}
               <div className="space-y-3 pt-4">
                 <Button
-                  variant="outline"
-                  className="w-full h-10 flex items-center justify-center gap-2"
-                >
-                  <Printer className="h-4 w-4" />
-                  Print
-                </Button>
-                <Button
                   className="w-full h-10 bg-green-600 hover:bg-green-700 text-white"
                   onClick={form.handleSubmit(onSubmit)}
                 >
-                  To'lov qilish
+                  Yaratish
                 </Button>
               </div>
             </div>
