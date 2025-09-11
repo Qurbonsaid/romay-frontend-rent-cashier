@@ -16,8 +16,10 @@ const authApi = baseApi.injectEndpoints({
         body: credentials,
       }),
       async onQueryStarted(_, { queryFulfilled }) {
+        console.log('Login mutation started')
         try {
           const { data } = await queryFulfilled
+          console.log('Login mutation successful:', data)
           if ('access_token' in data && 'refresh_token' in data) {
             setAuthTokens({
               access_token: data.access_token as string,

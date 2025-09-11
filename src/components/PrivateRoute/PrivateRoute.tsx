@@ -14,7 +14,10 @@ export const PrivateRoute = () => {
       </div>
     )
 
-  if (isError || !userData || !token) return <Navigate to={'/auth/login'} />
+  if (isError || !userData || !token) {
+    console.log('User is not authenticated, redirecting to login...')
+    return <Navigate to={'/auth/login'} />
+  }
 
   return <Outlet />
 }
