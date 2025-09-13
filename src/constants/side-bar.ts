@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 // sidebar-groups.ts
 import {
   LayoutGrid,
@@ -132,17 +132,15 @@ export const getSidebarGroups = (role: Role): SidebarGroup[] => {
         {
           label: 'Asosiy',
           items: [
-            { title: 'Ijara', icon: CircleArrowOutUpRight, url: '/rents' },
-            { title: 'Qabul qilish', icon: Import, url: '/accept' },
+            { title: 'Ijara', icon: CircleArrowOutUpRight, url: '/' },
+            { title: "Ta'mirlash", icon: Wrench, url: '/repairs' },
           ],
         },
         {
           label: "Ma'lumotlar",
           items: [
             { title: 'Mijozlar', icon: UserRound, url: '/clients' },
-            { title: 'Buyurtmalar', icon: SquareCheckBig, url: '/orders' },
             { title: 'Mahsulotlar', icon: Package, url: '/products' },
-            { title: "Ta'mirlash", icon: Wrench, url: '/repairs' },
           ],
         },
       ]

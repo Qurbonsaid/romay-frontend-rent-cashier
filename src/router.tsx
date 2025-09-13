@@ -14,6 +14,9 @@ export const AppRouter = () => {
   return (
     <Routes>
       <Route path="/" element={<PrivateRoute />} />
+      <Route path="/" element={<PrivateRoute />}>
+        <Route index element={<Rents />}></Route>
+      </Route>
       <Route path={'auth'}>
         <Route path={'login'} element={<LoginPage />} />
       </Route>
@@ -35,9 +38,7 @@ export const AppRouter = () => {
       <Route path="products" element={<PrivateRoute />}>
         <Route index element={<ProductPage />}></Route>
       </Route>
-      <Route path="rents" element={<PrivateRoute />}>
-        <Route index element={<Rents />}></Route>
-      </Route>
+
       <Route path="rents/add" element={<PrivateRoute />}>
         <Route index element={<AddRent />}></Route>
       </Route>

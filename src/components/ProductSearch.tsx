@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Search, Plus } from 'lucide-react'
-import { useGetAllRentProductsQuery } from '@/store/product/product.api'
+import { useGetAllSaleProductsQuery } from '@/store/product/product.api'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
 import { useDebounce } from '@/hooks/use-debounce'
 
@@ -19,7 +19,7 @@ export default function ProductSearch({
   const [isOpen, setIsOpen] = useState(false)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
-  const { data: productsData, isLoading } = useGetAllRentProductsQuery(
+  const { data: productsData, isLoading } = useGetAllSaleProductsQuery(
     {
       page: 1,
       limit: 10,

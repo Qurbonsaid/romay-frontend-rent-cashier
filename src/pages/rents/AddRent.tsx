@@ -19,7 +19,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
-import { Plus, Trash2, Search } from 'lucide-react'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Plus, Trash2, Search, CalendarIcon, Minus } from 'lucide-react'
+import { format } from 'date-fns'
+import { cn } from '@/lib/utils'
 import {
   useAddRentMutation,
   useGetAllRentProductsQuery,
@@ -27,7 +35,6 @@ import {
 import { useGetAllBranchesQuery } from '@/store/branch/branch.api'
 import { useGetClientsQuery } from '@/store/clients/clients.api'
 import type { Client } from '@/types/clients'
-import type { RentProductDetail } from '@/store/rent/types'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
 import { useGetBranch } from '@/hooks/use-get-branch'
@@ -48,17 +55,17 @@ export default function AddRent() {
     branch: '',
     client: '',
     client_name: '',
-    received_date: new Date().toISOString().split('T')[0],
-    delivery_date: '',
+    received_date: new Date(),
+    delivery_date: undefined as Date | undefined,
   })
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>(
     []
   )
   const [isProductModalOpen, setIsProductModalOpen] = useState(false)
   const [productSearch, setProductSearch] = useState('')
-  const [selectedProductForAdd, setSelectedProductForAdd] =
-    useState<RentProductDetail | null>(null)
-  const [productQuantity, setProductQuantity] = useState(1)
+  const [productQuantities, setProductQuantities] = useState<{
+    [productId: string]: number
+  }>({})
 
   // Check permissions
   const canAddRent = CheckRole(userRole, ['rent_cashier'])
@@ -86,7 +93,10 @@ export default function AddRent() {
     return null
   }
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (
+    field: string,
+    value: string | Date | undefined
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -99,40 +109,55 @@ export default function AddRent() {
     }))
   }
 
-  const handleAddProduct = () => {
-    if (!selectedProductForAdd || productQuantity <= 0) return
-
-    if (productQuantity > selectedProductForAdd.product_active_count) {
-      toast.error("Mavjud miqdordan ko'p mahsulot tanlab bo'lmaydi")
-      return
-    }
-
-    const existingProductIndex = selectedProducts.findIndex(
-      (p) => p.rent_product === selectedProductForAdd._id
-    )
-
-    if (existingProductIndex >= 0) {
-      // Update existing product
-      const updatedProducts = [...selectedProducts]
-      updatedProducts[existingProductIndex].rent_product_count = productQuantity
-      setSelectedProducts(updatedProducts)
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      setProductQuantities((prev) => {
+        const updated = { ...prev }
+        delete updated[productId]
+        return updated
+      })
     } else {
-      // Add new product
-      setSelectedProducts((prev) => [
+      setProductQuantities((prev) => ({
         ...prev,
-        {
-          rent_product: selectedProductForAdd._id,
-          rent_product_count: productQuantity,
-          name: selectedProductForAdd.product.name,
-          rent_price: selectedProductForAdd.product_rent_price,
-          available_quantity: selectedProductForAdd.product_active_count,
-        },
-      ])
+        [productId]: newQuantity,
+      }))
+    }
+  }
+
+  const handleAddSelectedProducts = () => {
+    const newProducts: SelectedProduct[] = []
+
+    Object.entries(productQuantities).forEach(([productId, quantity]) => {
+      const product = rentProductsData?.data.find((p) => p._id === productId)
+      if (product && quantity > 0) {
+        const existingProductIndex = selectedProducts.findIndex(
+          (p) => p.rent_product === productId
+        )
+
+        if (existingProductIndex >= 0) {
+          // Update existing product
+          const updatedProducts = [...selectedProducts]
+          updatedProducts[existingProductIndex].rent_product_count = quantity
+          setSelectedProducts(updatedProducts)
+        } else {
+          // Add new product
+          newProducts.push({
+            rent_product: product._id,
+            rent_product_count: quantity,
+            name: product.product.name,
+            rent_price: product.product_rent_price,
+            available_quantity: product.product_active_count,
+          })
+        }
+      }
+    })
+
+    if (newProducts.length > 0) {
+      setSelectedProducts((prev) => [...prev, ...newProducts])
     }
 
     setIsProductModalOpen(false)
-    setSelectedProductForAdd(null)
-    setProductQuantity(1)
+    setProductQuantities({})
   }
 
   const handleRemoveProduct = (productId: string) => {
@@ -170,8 +195,8 @@ export default function AddRent() {
           rent_product: p.rent_product,
           rent_product_count: p.rent_product_count,
         })),
-        received_date: formData.received_date,
-        delivery_date: formData.delivery_date,
+        received_date: formData.received_date.toISOString(),
+        delivery_date: formData.delivery_date.toISOString(),
       }).unwrap()
 
       toast.success("Ijara muvaffaqiyatli qo'shildi")
@@ -192,7 +217,7 @@ export default function AddRent() {
         <h1 className="text-[30px] font-semibold text-[#09090B]">
           Yangi Ijara Qo'shish
         </h1>
-        <Button variant="outline" onClick={() => navigate('/rents')}>
+        <Button variant="outline" onClick={() => navigate('/')}>
           Orqaga
         </Button>
       </div>
@@ -204,16 +229,18 @@ export default function AddRent() {
             <h2 className="text-lg font-semibold mb-4">Asosiy Ma'lumotlar</h2>
 
             <div className="space-y-4">
-              {userRole === 'ceo' && (
-                <div>
-                  <Label htmlFor="branch">Filial *</Label>
+              {CheckRole(userRole, ['ceo']) && (
+                <div className="space-y-2">
+                  <Label htmlFor="branch" className="text-sm font-medium">
+                    Filial *
+                  </Label>
                   <Select
                     value={formData.branch}
                     onValueChange={(value) =>
                       handleInputChange('branch', value)
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Filialni tanlang" />
                     </SelectTrigger>
                     <SelectContent>
@@ -227,13 +254,15 @@ export default function AddRent() {
                 </div>
               )}
 
-              <div>
-                <Label htmlFor="client">Mijoz *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="client" className="text-sm font-medium">
+                  Mijoz *
+                </Label>
                 <Select
                   value={formData.client}
                   onValueChange={handleClientChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Mijozni tanlang" />
                   </SelectTrigger>
                   <SelectContent>
@@ -246,8 +275,10 @@ export default function AddRent() {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="client_name">Mijoz Ismi *</Label>
+              <div className="space-y-2">
+                <Label htmlFor="client_name" className="text-sm font-medium">
+                  Mijoz Ismi *
+                </Label>
                 <Input
                   id="client_name"
                   value={formData.client_name}
@@ -260,28 +291,72 @@ export default function AddRent() {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="received_date">Qabul Sanasi *</Label>
-                <Input
-                  id="received_date"
-                  type="date"
-                  value={formData.received_date}
-                  onChange={(e) =>
-                    handleInputChange('received_date', e.target.value)
-                  }
-                />
+              <div className="space-y-2">
+                <Label htmlFor="received_date" className="text-sm font-medium">
+                  Qabul Sanasi *
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full h-10 justify-start text-left font-normal',
+                        !formData.received_date && 'text-muted-foreground'
+                      )}
+                    >
+                      {formData.received_date ? (
+                        format(formData.received_date, 'dd.MM.yyyy')
+                      ) : (
+                        <span>Sanani tanlang</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.received_date}
+                      onSelect={(date) => {
+                        handleInputChange('received_date', date || new Date())
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
-              <div>
-                <Label htmlFor="delivery_date">Qaytarish Sanasi *</Label>
-                <Input
-                  id="delivery_date"
-                  type="date"
-                  value={formData.delivery_date}
-                  onChange={(e) =>
-                    handleInputChange('delivery_date', e.target.value)
-                  }
-                />
+              <div className="space-y-2">
+                <Label htmlFor="delivery_date" className="text-sm font-medium">
+                  Qaytarish Sanasi *
+                </Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        'w-full h-10 justify-start text-left font-normal',
+                        !formData.delivery_date && 'text-muted-foreground'
+                      )}
+                    >
+                      {formData.delivery_date ? (
+                        format(formData.delivery_date, 'dd.MM.yyyy')
+                      ) : (
+                        <span>Sanani tanlang</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={formData.delivery_date}
+                      onSelect={(date) => {
+                        handleInputChange('delivery_date', date)
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </div>
@@ -328,93 +403,108 @@ export default function AddRent() {
                             <th className="px-4 py-2 text-left">Mahsulot</th>
                             <th className="px-4 py-2 text-center">Narx</th>
                             <th className="px-4 py-2 text-center">Mavjud</th>
-                            <th className="px-4 py-2 text-center">Tanlash</th>
+                            <th className="px-4 py-2 text-center">Miqdor</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y">
-                          {rentProductsData?.data.map((product) => (
-                            <tr key={product._id} className="hover:bg-gray-50">
-                              <td className="px-4 py-2">
-                                <div className="flex items-center">
-                                  {product.product.images &&
-                                    product.product.images.length > 0 && (
-                                      <img
-                                        src={product.product.images[0]}
-                                        alt={product.product.name}
-                                        className="h-8 w-8 rounded object-cover mr-2"
-                                      />
-                                    )}
-                                  <div>
-                                    <div className="font-medium">
-                                      {product.product.name}
-                                    </div>
-                                    <div className="text-sm text-gray-500">
-                                      {product.product.barcode}
+                          {rentProductsData?.data.map((product) => {
+                            const quantity = productQuantities[product._id] || 0
+                            return (
+                              <tr
+                                key={product._id}
+                                className="hover:bg-gray-50"
+                              >
+                                <td className="px-4 py-2">
+                                  <div className="flex items-center">
+                                    {product.product.images &&
+                                      product.product.images.length > 0 && (
+                                        <img
+                                          src={product.product.images[0]}
+                                          alt={product.product.name}
+                                          className="h-8 w-8 rounded object-cover mr-2"
+                                        />
+                                      )}
+                                    <div>
+                                      <div className="font-medium">
+                                        {product.product.name}
+                                      </div>
+                                      <div className="text-sm text-gray-500">
+                                        {product.product.barcode}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-2 text-center">
-                                {formatPrice(product.product_rent_price)} so'm
-                              </td>
-                              <td className="px-4 py-2 text-center">
-                                <span
-                                  className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                    product.product_active_count > 0
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-red-100 text-red-800'
-                                  }`}
-                                >
-                                  {product.product_active_count}
-                                </span>
-                              </td>
-                              <td className="px-4 py-2 text-center">
-                                <Button
-                                  size="sm"
-                                  disabled={product.product_active_count === 0}
-                                  onClick={() =>
-                                    setSelectedProductForAdd(product)
-                                  }
-                                >
-                                  Tanlash
-                                </Button>
-                              </td>
-                            </tr>
-                          ))}
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  {formatPrice(product.product_rent_price)} so'm
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  <span
+                                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                      product.product_active_count > 0
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}
+                                  >
+                                    {product.product_active_count}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-2 text-center">
+                                  <div className="flex items-center justify-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={
+                                        quantity <= 0 ||
+                                        product.product_active_count === 0
+                                      }
+                                      onClick={() =>
+                                        handleQuantityChange(
+                                          product._id,
+                                          quantity - 1
+                                        )
+                                      }
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="w-8 text-center font-medium">
+                                      {quantity}
+                                    </span>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      disabled={
+                                        quantity >=
+                                          product.product_active_count ||
+                                        product.product_active_count === 0
+                                      }
+                                      onClick={() =>
+                                        handleQuantityChange(
+                                          product._id,
+                                          quantity + 1
+                                        )
+                                      }
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })}
                         </tbody>
                       </table>
                     </div>
 
-                    {selectedProductForAdd && (
-                      <div className="border-t pt-4">
-                        <h3 className="font-medium mb-2">
-                          {selectedProductForAdd.product.name} - Miqdorni
-                          kiriting:
-                        </h3>
-                        <div className="flex gap-2 items-center">
-                          <Input
-                            type="number"
-                            min="1"
-                            max={selectedProductForAdd.product_active_count}
-                            value={productQuantity}
-                            onChange={(e) =>
-                              setProductQuantity(parseInt(e.target.value) || 1)
-                            }
-                            className="w-24"
-                          />
-                          <span className="text-sm text-gray-500">
-                            / {selectedProductForAdd.product_active_count}{' '}
-                            mavjud
-                          </span>
-                          <Button
-                            onClick={handleAddProduct}
-                            className="ml-auto"
-                          >
-                            Qo'shish
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                    <div className="flex justify-end pt-4">
+                      <Button
+                        onClick={handleAddSelectedProducts}
+                        disabled={Object.keys(productQuantities).length === 0}
+                      >
+                        Tanlangan Mahsulotlarni Qo'shish
+                      </Button>
+                    </div>
                   </div>
                 </DialogContent>
               </Dialog>

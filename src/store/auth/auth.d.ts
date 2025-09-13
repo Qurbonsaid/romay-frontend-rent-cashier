@@ -1,5 +1,3 @@
- 
-
 import type { User } from '@/types/user'
 
 export type LoginRequest = {
@@ -14,5 +12,6 @@ export type LoginResponse = {
 }
 
 export type UserResponse = {
+  success: boolean
   data: User
 }

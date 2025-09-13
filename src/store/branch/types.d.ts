@@ -25,7 +25,7 @@ export interface GetBranchesResponse {
     page: number
     limit: number
     next_page: boolean
-    prev_page: false
+    prev_page: boolean
   }
 }
 export interface GetBranchesRequest {

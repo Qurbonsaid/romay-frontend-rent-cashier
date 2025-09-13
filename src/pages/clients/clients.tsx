@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
+import { Search } from 'lucide-react'
+import { TablePagination } from '@/components/ui/table-pagination'
 import { useGetClientsQuery } from '@/store/clients/clients.api'
 import { TableSkeleton } from '../../components/ui/table-skeleton'
 import { AlertCircle } from 'lucide-react'
@@ -36,11 +32,36 @@ function BalanceCell({ value }: { value: number }) {
 }
 
 function Clients() {
+  const [currentPage, setCurrentPage] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [search, setSearch] = useState('')
+
   const {
-    data: { data: clientsData = [] } = {},
+    data: clientsResponse,
     isLoading,
     isError,
-  } = useGetClientsQuery({})
+  } = useGetClientsQuery({
+    search,
+    page: currentPage,
+    limit,
+  })
+
+  const clientsData = clientsResponse?.data || []
+  const pagination = clientsResponse?.pagination
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (itemsPerPage: number) => {
+    setLimit(itemsPerPage)
+    setCurrentPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setCurrentPage(1)
+  }
 
   const role = useGetRole()
 
@@ -50,16 +71,15 @@ function Clients() {
       <div className="flex justify-between items-center">
         <h1 className="text-[30px] font-semibold text-[#09090B]">Mijozlar</h1>
         <div className="flex gap-3">
-          <Select>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Barcha filiallar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Barchasi</SelectItem>
-              <SelectItem value="termiz">Termiz</SelectItem>
-              <SelectItem value="shahrisabz">Shahrisabz</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              className="pl-9 w-[300px]"
+              placeholder="Mijoz qidirish..."
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+          </div>
           {CheckRole(role, ['manager']) && (
             <Button onClick={() => setOpen(true)} variant="default">
               Mijoz qo'shish
@@ -88,72 +108,84 @@ function Clients() {
           </p>
         </div>
       ) : (
-        <div className="border border-[#E4E4E7] rounded-lg overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-[#F9F9F9] text-[#71717A] text-sm">
-              <tr>
-                <th className="px-6 py-3 text-left font-medium">Ismi</th>
-                <th className="px-6 py-3 text-left font-medium">
-                  Telefon raqami
-                </th>
-                <th className="px-6 py-3 text-left font-medium">Darajasi</th>
-                <th className="px-6 py-3 text-left font-medium">Qarz</th>
-                <th className="px-6 py-3 text-center font-medium">
-                  Buyurtmalar soni
-                </th>
-                <th className="px-6 py-3 text-center font-medium">Filial</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#E4E4E7]">
-              {clientsData?.map((c) => (
-                <tr
-                  key={c._id}
-                  className="hover:bg-[#F9F9F9] cursor-pointer"
-                  onClick={() =>
-                    (window.location.href = `/ceo/customers/customer-detail/${c._id}`)
-                  }
-                >
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-[#18181B]">
-                      <Link
-                        to={`/manager/clients/${c._id}`}
-                        className="hover:underline"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {c.username}
-                      </Link>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[#18181B]">
-                      {c.phone || 'Mavjud emas'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-[#18181B]">
-                      {c.customer_tier || 'Mavjud emas'}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm">
-                      <BalanceCell value={c.debt?.amount || 0} />
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-[#18181B]">
-                      {/* Orders count not available in API response */}0
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-[#18181B]">
-                      {c.branch_id?.name || "Noma'lum"}
-                    </div>
-                  </td>
+        <>
+          <div className="border border-[#E4E4E7] rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-[#F9F9F9] text-[#71717A] text-sm">
+                <tr>
+                  <th className="px-6 py-3 text-left font-medium">Ismi</th>
+                  <th className="px-6 py-3 text-left font-medium">
+                    Telefon raqami
+                  </th>
+                  <th className="px-6 py-3 text-left font-medium">Toifa</th>
+                  <th className="px-6 py-3 text-left font-medium">Qarz</th>
+                  <th className="px-6 py-3 text-center font-medium">
+                    Buyurtmalar soni
+                  </th>
+                  <th className="px-6 py-3 text-center font-medium">Filial</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-[#E4E4E7]">
+                {clientsData?.map((c) => (
+                  <tr
+                    key={c._id}
+                    className="hover:bg-[#F9F9F9] cursor-pointer"
+                    onClick={() =>
+                      (window.location.href = `/ceo/customers/customer-detail/${c._id}`)
+                    }
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-[#18181B]">
+                        <Link
+                          to={`/manager/clients/${c._id}`}
+                          className="hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {c.username}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[#18181B]">
+                        {c.phone || 'Mavjud emas'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[#18181B]">
+                        {c.customer_tier || 'Mavjud emas'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm">
+                        <BalanceCell value={c.debt?.amount || 0} />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="text-sm text-[#18181B]">
+                        {/* Orders count not available in API response */}0
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="text-sm text-[#18181B]">
+                        {c.branch_id?.name || "Noma'lum"}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <TablePagination
+            currentPage={pagination?.page || 1}
+            totalPages={pagination?.total_pages || 1}
+            totalItems={pagination?.total || 0}
+            itemsPerPage={limit}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+            className="mt-6"
+          />
+        </>
       )}
       <AddClientDialog open={open} setOpen={setOpen} />
     </div>

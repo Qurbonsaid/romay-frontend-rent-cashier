@@ -2,14 +2,17 @@ export type ServiceStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 
 export interface Service {
   _id: string
+  totalAmount: number
+  mechanic: string | null
   branch: string
   client_name: string
   client_phone: string
-  mechanic: string
-  servicePrice: number
+  mechanic_salary: number
   received_date: string
   delivery_date: string
   status: ServiceStatus
+  products: Product[]
+  payments: any[]
   created_at: string
   updated_at: string
 }
@@ -47,13 +50,9 @@ export interface GetAllServicesRequest {
 
 export interface GetAllServicesResponse {
   success: boolean
+  page_count: number
+  current_page: number
+  next_page: number | null
+  after_filtering_count: number
   data: Service[]
-  pagination: {
-    total: number
-    total_pages: number
-    page: number
-    limit: number
-    next_page: boolean
-    prev_page: boolean
-  }
 }

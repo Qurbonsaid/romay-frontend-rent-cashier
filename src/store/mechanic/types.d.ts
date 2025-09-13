@@ -34,13 +34,9 @@ export interface GetAllMechanicsRequest {
 
 export interface GetAllMechanicsResponse {
   success: boolean
+  page_count: number
+  current_page: number
+  next_page: number | null
+  after_filtering_count: number
   data: Mechanic[]
-  pagination: {
-    total: number
-    total_pages: number
-    page: number
-    limit: number
-    next_page: boolean
-    prev_page: boolean
-  }
 }
