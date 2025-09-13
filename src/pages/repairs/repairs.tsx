@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Select,
@@ -9,9 +9,10 @@ import {
 } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { TablePagination } from '@/components/ui/table-pagination'
+import { Plus, Search } from 'lucide-react'
 import { useGetAllServicesQuery } from '@/store/service/service.api'
-import { useGetAllBranchesQuery } from '@/store/branch/branch.api'
 import { useGetAllMechanicsQuery } from '@/store/mechanic/mechanic.api'
 import type { ServiceStatus } from '@/store/service/types'
 import { useGetRole } from '@/hooks/use-get-role'
@@ -32,8 +33,22 @@ function MechanicsTable() {
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(10)
-  const [selectedBranch, setSelectedBranch] = useState<string>('')
+  const [limit, setLimit] = useState(10)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (itemsPerPage: number) => {
+    setLimit(itemsPerPage)
+    setCurrentPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
   // Check permissions for mechanic/get-all - ceo, manager, rent_cashier
   const canViewMechanics = CheckRole(userRole, [
@@ -42,36 +57,20 @@ function MechanicsTable() {
     'rent_cashier',
   ])
 
-  const { data: branchesData, refetch: refetchBranches } =
-    useGetAllBranchesQuery(
-      {
-        page: 1,
-        limit: 100,
-      },
-      {
-        skip: true,
-      }
-    )
-
   const {
     data: mechanicsData,
     isLoading: mechanicsLoading,
     error: mechanicsError,
   } = useGetAllMechanicsQuery(
     {
+      search: searchTerm || undefined,
       page: currentPage,
-      limit: pageSize,
+      limit: limit,
     },
     {
       skip: !canViewMechanics,
     }
   )
-
-  useEffect(() => {
-    if (userRole === 'ceo') {
-      refetchBranches()
-    }
-  }, [userRole, refetchBranches])
 
   // Navigate to dashboard if no permission
   if (!canViewMechanics) {
@@ -80,11 +79,10 @@ function MechanicsTable() {
   }
 
   const mechanics = mechanicsData?.data || []
-  const pagination = mechanicsData?.pagination
-
-  const handleBranchChange = (value: string) => {
-    setSelectedBranch(value)
-    setCurrentPage(1)
+  const pagination = {
+    current_page: mechanicsData?.current_page || 1,
+    page_count: mechanicsData?.page_count || 1,
+    after_filtering_count: mechanicsData?.after_filtering_count || 0,
   }
 
   if (mechanicsLoading) {
@@ -108,21 +106,15 @@ function MechanicsTable() {
       <div className="flex justify-between items-center">
         <div className="flex gap-4">
           {CheckRole(userRole, ['manager']) && <AddMechanicDialog />}
-          {userRole === 'ceo' && (
-            <Select value={selectedBranch} onValueChange={handleBranchChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filialni tanlang" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value=" ">Barcha filiallar</SelectItem>
-                {branchesData?.data.map((branch) => (
-                  <SelectItem key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              className="pl-9 w-[300px]"
+              placeholder="Usta nomi bo'yicha qidirish..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
@@ -194,33 +186,15 @@ function MechanicsTable() {
         </table>
       </div>
 
-      {pagination && pagination.total_pages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Jami {pagination.total} ta natija, {pagination.page}-sahifa{' '}
-            {pagination.total_pages} sahifadan
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={!pagination.prev_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Oldingi
-            </button>
-            <span className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded">
-              {pagination.page}
-            </span>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={!pagination.next_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Keyingi
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        currentPage={pagination.current_page}
+        totalPages={pagination.page_count}
+        totalItems={pagination.after_filtering_count}
+        itemsPerPage={limit}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        className="mt-6"
+      />
     </div>
   )
 }
@@ -229,10 +203,24 @@ function MechanicsTable() {
 function ServicesTable() {
   const navigate = useNavigate()
   const userRole = useGetRole()
-  const [selectedBranch, setSelectedBranch] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | ''>('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(10)
+  const [limit, setLimit] = useState(10)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (itemsPerPage: number) => {
+    setLimit(itemsPerPage)
+    setCurrentPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
   // Check permissions for service/get-all - ceo, manager, rent_cashier
   const canViewServices = CheckRole(userRole, [
@@ -241,32 +229,16 @@ function ServicesTable() {
     'rent_cashier',
   ])
 
-  // CEO can see all branches, others only their own branch
-  const canViewAllBranches = CheckRole(userRole, ['ceo'])
-
-  const { data: branchesData } = useGetAllBranchesQuery(
-    {
-      page: 1,
-      limit: 100,
-    },
-    {
-      skip: !canViewAllBranches,
-    }
-  )
-
-  // Use branches data only for CEO, others use their own branch
-  const allBranches = branchesData?.data || []
-  const availableBranches = canViewAllBranches ? allBranches : []
-
   const {
     data: servicesData,
     isLoading: servicesLoading,
     error: servicesError,
   } = useGetAllServicesQuery(
     {
+      search: searchTerm || undefined,
       status: (selectedStatus.trim() as ServiceStatus) || undefined,
       page: currentPage,
-      limit: pageSize,
+      limit: limit,
     },
     {
       skip: !canViewServices,
@@ -280,11 +252,10 @@ function ServicesTable() {
   }
 
   const services = servicesData?.data || []
-  const pagination = servicesData?.pagination
-
-  const handleBranchChange = (value: string) => {
-    setSelectedBranch(value)
-    setCurrentPage(1)
+  const servicesPagination = {
+    current_page: servicesData?.current_page || 1,
+    page_count: servicesData?.page_count || 1,
+    after_filtering_count: servicesData?.after_filtering_count || 0,
   }
 
   const handleStatusChange = (value: ServiceStatus | '') => {
@@ -338,6 +309,15 @@ function ServicesTable() {
               Xizmat qo'shish
             </Button>
           )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              className="pl-9 w-[300px]"
+              placeholder="Mijoz nomi bo'yicha qidirish..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+          </div>
           <Select value={selectedStatus} onValueChange={handleStatusChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Holatni tanlang" />
@@ -349,21 +329,6 @@ function ServicesTable() {
               <SelectItem value="CANCELLED">Bekor qilingan</SelectItem>
             </SelectContent>
           </Select>
-          {canViewAllBranches && (
-            <Select value={selectedBranch} onValueChange={handleBranchChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filialni tanlang" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value=" ">Barcha filiallar</SelectItem>
-                {availableBranches.map((branch) => (
-                  <SelectItem key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
       </div>
 
@@ -376,6 +341,7 @@ function ServicesTable() {
               <th className="px-6 py-3 text-center font-medium">
                 Xizmat narxi
               </th>
+              <th className="px-6 py-3 text-center font-medium">Usta haqqi</th>
               <th className="px-6 py-3 text-center font-medium">Holat</th>
               <th className="px-6 py-3 text-center font-medium">
                 Qabul sanasi
@@ -412,7 +378,12 @@ function ServicesTable() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
-                      {formatPrice(service.servicePrice)} so'm
+                      {formatPrice(service.totalAmount)} so'm
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {formatPrice(service.mechanic_salary)} so'm
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -449,33 +420,15 @@ function ServicesTable() {
         </table>
       </div>
 
-      {pagination && pagination.total_pages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Jami {pagination.total} ta natija, {pagination.page}-sahifa{' '}
-            {pagination.total_pages} sahifadan
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={!pagination.prev_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Oldingi
-            </button>
-            <span className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded">
-              {pagination.page}
-            </span>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={!pagination.next_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Keyingi
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        currentPage={servicesPagination.current_page}
+        totalPages={servicesPagination.page_count}
+        totalItems={servicesPagination.after_filtering_count}
+        itemsPerPage={limit}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        className="mt-6"
+      />
     </div>
   )
 }

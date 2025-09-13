@@ -29,7 +29,6 @@ export interface AddClientRequest {
   birth_date: string
   branch_id: string
   address: string
-  address: string
 }
 
 export interface UpdateClientResponse {}

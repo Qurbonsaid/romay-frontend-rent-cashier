@@ -16,6 +16,7 @@ export interface Client {
     currency: string
   }
   customer_tier: string
+  sales_count?: number
   created_at: string
   updated_at: string
 }

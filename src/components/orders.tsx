@@ -4,10 +4,12 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select'
+} from '@/components/ui/select'
 import { Button } from './ui/button'
-import { Download } from 'lucide-react'
+import { Input } from './ui/input'
+import { Download, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useState, useMemo } from 'react'
 
 const customers = [
   {
@@ -54,6 +56,25 @@ const customers = [
 
 export default function Orders() {
   const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedPaymentStatus, setSelectedPaymentStatus] =
+    useState<string>('all')
+
+  const filteredCustomers = useMemo(() => {
+    return customers.filter((customer) => {
+      const matchesSearch =
+        customer.ismi.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.buyurtmaRaqami.includes(searchTerm)
+
+      const matchesPaymentStatus =
+        selectedPaymentStatus === 'all' ||
+        (selectedPaymentStatus === 'paid' && customer.debt === "0 so'm") ||
+        (selectedPaymentStatus === 'debt' && customer.debt !== "0 so'm")
+
+      return matchesSearch && matchesPaymentStatus
+    })
+  }, [searchTerm, selectedPaymentStatus])
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -61,15 +82,26 @@ export default function Orders() {
           Buyurtmalar
         </h1>
         <div className="flex gap-4">
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Filialni tanlang" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              className="pl-9 w-[300px]"
+              placeholder="Mijoz yoki buyurtma raqami bo'yicha qidirish..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select
+            value={selectedPaymentStatus}
+            onValueChange={setSelectedPaymentStatus}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="To'lov holati" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Barcha Filiallar</SelectItem>
-              <SelectItem value="filial1">Termiz Filiali</SelectItem>
-              <SelectItem value="filial2">Filial 2</SelectItem>
-              <SelectItem value="filial3">Filial 3</SelectItem>
+              <SelectItem value="all">Barcha holatlar</SelectItem>
+              <SelectItem value="paid">To'langan</SelectItem>
+              <SelectItem value="debt">Qarzdor</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -97,47 +129,57 @@ export default function Orders() {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E4E4E7]">
-            {customers.map((customer) => (
-              <tr
-                key={customer.id}
-                onClick={() => navigate(`/ceo/orders/${customer.id}`)}
-              >
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="text-sm font-medium text-[#18181B]">
-                    {customer.ismi}
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="text-sm text-[#18181B]">
-                    {customer.buyurtmaRaqami}
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="text-sm text-[#18181B]">
-                    {customer.buyurtmaSanasi}
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="text-sm text-[#18181B]">
-                    {customer.totalCost}
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="text-sm text-[#18181B]">
-                    {customer.payment}
-                  </div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  <div className="text-sm text-[#18181B]">{customer.debt}</div>
-                </td>
-                <td className="px-6 py-3 whitespace-nowrap">
-                  {/* <div className="text-sm text-[#18181B]">{customer.download}</div> */}
-                  <Button disabled={!customer.download} variant={'outline'}>
-                    <Download /> To'lov cheki
-                  </Button>
+            {filteredCustomers.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
+                  Buyurtmalar topilmadi
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredCustomers.map((customer) => (
+                <tr
+                  key={customer.id}
+                  onClick={() => navigate(`/ceo/orders/${customer.id}`)}
+                >
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm font-medium text-[#18181B]">
+                      {customer.ismi}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm text-[#18181B]">
+                      {customer.buyurtmaRaqami}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm text-[#18181B]">
+                      {customer.buyurtmaSanasi}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm text-[#18181B]">
+                      {customer.totalCost}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm text-[#18181B]">
+                      {customer.payment}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    <div className="text-sm text-[#18181B]">
+                      {customer.debt}
+                    </div>
+                  </td>
+                  <td className="px-6 py-3 whitespace-nowrap">
+                    {/* <div className="text-sm text-[#18181B]">{customer.download}</div> */}
+                    <Button disabled={!customer.download} variant={'outline'}>
+                      <Download /> To'lov cheki
+                    </Button>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

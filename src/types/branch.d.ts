@@ -7,4 +7,9 @@ export interface Branch {
     username: string
     phone: string
   }[]
+  sales_balance: number
+  service_balance: number
+  total_balance: number
+  created_at: string
+  updated_at: string
 }

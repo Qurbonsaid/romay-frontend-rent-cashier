@@ -1,11 +1,3 @@
-import { Calendar22 } from '@/components/calendar'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import {
   Sidebar,
@@ -25,8 +17,6 @@ import {
 import { getSidebarGroups } from '@/constants/side-bar'
 import { useGetRole } from '@/hooks/use-get-role'
 import { Link, useLocation } from 'react-router-dom'
-import { useGetAllBranchesQuery } from '@/store/branch/branch.api'
-import { useState } from 'react'
 import { User2 } from 'lucide-react'
 import { ChevronUp } from 'lucide-react'
 import {
@@ -41,11 +31,11 @@ const HIDE_SIDEBAR_ROUTES = ['/auth/login']
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const role = useGetRole()
   const groups = getSidebarGroups(role)
-  const { data: { data: branches } = {} } = useGetAllBranchesQuery(
-    {},
-    { skip: role !== 'ceo' }
-  )
-  const [selectedBranch, setSelectedBranch] = useState<string>('')
+  // const { data: { data: branches } = {} } = useGetAllBranchesQuery(
+  //   {},
+  //   { skip: role !== 'ceo' }
+  // )
+  // const [selectedBranch, setSelectedBranch] = useState<string>('')
   const { pathname } = useLocation()
 
   const hideSidebar = HIDE_SIDEBAR_ROUTES.includes(pathname)
@@ -130,7 +120,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 {/* <span className="text-sm text-muted-foreground">({role})</span> */}
               </div>
             </div>
-            <div className="flex gap-4">
+            {/* <div className="flex gap-4">
               <Calendar22 />
               <Select
                 onValueChange={(value) => {
@@ -149,7 +139,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
           </div>
         </header>
         <main className="px-6 py-20">{children}</main>

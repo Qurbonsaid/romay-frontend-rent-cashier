@@ -1,6 +1,7 @@
 import baseApi from '../api'
 import type {
   GetAllProductsResponse,
+  GetAllRentProductsResponse,
   GetAllProductsRequest,
   CreateProductRequest,
   CreateProductResponse,
@@ -33,7 +34,7 @@ export const productApi = baseApi.injectEndpoints({
     }),
     // New endpoint for rent products
     getAllRentProducts: builder.query<
-      GetAllProductsResponse,
+      GetAllRentProductsResponse,
       { page?: number; limit?: number; search?: string }
     >({
       query: (params) => ({

@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { TablePagination } from '@/components/ui/table-pagination'
 import { useGetAllRentsQuery } from '@/store/rent/rent.api'
-import { useGetAllBranchesQuery } from '@/store/branch/branch.api'
 import { useGetClientsQuery } from '@/store/clients/clients.api'
 import type { RentStatus } from '@/store/rent/types'
 import type { Client } from '@/types/clients'
@@ -35,22 +35,30 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(10)
-  const [selectedBranch, setSelectedBranch] = useState<string>('')
+  const [limit, setLimit] = useState(10)
   const [selectedClient, setSelectedClient] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<RentStatus | '' | 'all'>(
     ''
   )
   const [searchTerm, setSearchTerm] = useState('')
 
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (itemsPerPage: number) => {
+    setLimit(itemsPerPage)
+    setCurrentPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
+
   // Check permissions for rent operations
   const canViewRents = CheckRole(userRole, ['ceo', 'manager', 'rent_cashier'])
   const canManageRents = CheckRole(userRole, ['rent_cashier'])
-
-  const { data: branchesData } = useGetAllBranchesQuery(
-    { page: 1, limit: 100 },
-    { skip: userRole !== 'ceo' }
-  )
 
   const { data: clientsData } = useGetClientsQuery(
     { page: 1, limit: 100 },
@@ -63,7 +71,6 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
     error: rentsError,
   } = useGetAllRentsQuery(
     {
-      branch: selectedBranch || undefined,
       client:
         selectedClient === 'all' ? undefined : selectedClient || undefined,
       status:
@@ -71,7 +78,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
 
       search: searchTerm || undefined,
       page: currentPage,
-      limit: pageSize,
+      limit: limit,
     },
     { skip: !canViewRents }
   )
@@ -89,11 +96,6 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
     page: rentsData?.current_page || 1,
     next_page: rentsData?.next_page !== null,
     prev_page: (rentsData?.current_page || 1) > 1,
-  }
-
-  const handleBranchChange = (value: string) => {
-    setSelectedBranch(value)
-    setCurrentPage(1)
   }
 
   const handleClientChange = (value: string) => {
@@ -138,7 +140,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
           <Input
             placeholder="Mijoz nomi bo'yicha qidirish..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-[200px]"
           />
 
@@ -153,22 +155,6 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
               <SelectItem value="CANCELLED">Bekor qilingan</SelectItem>
             </SelectContent>
           </Select>
-
-          {userRole === 'ceo' && (
-            <Select value={selectedBranch} onValueChange={handleBranchChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filialni tanlang" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Barcha filiallar</SelectItem>
-                {branchesData?.data.map((branch) => (
-                  <SelectItem key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
 
           <Select value={selectedClient} onValueChange={handleClientChange}>
             <SelectTrigger className="w-[180px]">
@@ -277,33 +263,15 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
         </table>
       </div>
 
-      {pagination && pagination.total_pages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Jami {pagination.total} ta natija, {pagination.page}-sahifa{' '}
-            {pagination.total_pages} sahifadan
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={!pagination.prev_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Oldingi
-            </button>
-            <span className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded">
-              {pagination.page}
-            </span>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={!pagination.next_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Keyingi
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        currentPage={pagination?.page || 1}
+        totalPages={pagination?.total_pages || 1}
+        totalItems={pagination?.total || 0}
+        itemsPerPage={limit}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        className="mt-6"
+      />
     </div>
   )
 }

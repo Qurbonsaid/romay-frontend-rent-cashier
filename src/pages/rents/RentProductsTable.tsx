@@ -2,15 +2,8 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye } from 'lucide-react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { TablePagination } from '@/components/ui/table-pagination'
 import { useGetAllRentProductsQuery } from '@/store/rent/rent.api'
-import { useGetAllBranchesQuery } from '@/store/branch/branch.api'
 import type { RentProductDetail } from '@/store/rent/types'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
@@ -34,9 +27,22 @@ export default function RentProductsTable({
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize] = useState(10)
-  const [selectedBranch, setSelectedBranch] = useState<string>('')
+  const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (itemsPerPage: number) => {
+    setLimit(itemsPerPage)
+    setCurrentPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value)
+    setCurrentPage(1)
+  }
 
   const canViewRents = CheckRole(userRole, [
     'ceo',
@@ -44,11 +50,6 @@ export default function RentProductsTable({
     'rent_cashier',
     'storekeeper',
   ])
-
-  const { data: branchesData } = useGetAllBranchesQuery(
-    { page: 1, limit: 100 },
-    { skip: userRole !== 'ceo' }
-  )
 
   const {
     data: rentProductsData,
@@ -58,7 +59,7 @@ export default function RentProductsTable({
     {
       search: searchTerm || undefined,
       page: currentPage,
-      limit: pageSize,
+      limit: limit,
     },
     { skip: !canViewRents }
   )
@@ -75,11 +76,6 @@ export default function RentProductsTable({
     page: rentProductsData?.current_page || 1,
     next_page: rentProductsData?.next_page !== null,
     prev_page: (rentProductsData?.current_page || 1) > 1,
-  }
-
-  const handleBranchChange = (value: string) => {
-    setSelectedBranch(value)
-    setCurrentPage(1)
   }
 
   if (productsLoading) {
@@ -105,25 +101,9 @@ export default function RentProductsTable({
           <Input
             placeholder="Mahsulot nomi bo'yicha qidirish..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="w-[200px]"
           />
-
-          {userRole === 'ceo' && (
-            <Select value={selectedBranch} onValueChange={handleBranchChange}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filialni tanlang" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value=" ">Barcha filiallar</SelectItem>
-                {branchesData?.data.map((branch) => (
-                  <SelectItem key={branch._id} value={branch._id}>
-                    {branch.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
         </div>
       </div>
 
@@ -214,33 +194,15 @@ export default function RentProductsTable({
         </table>
       </div>
 
-      {pagination && pagination.total_pages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Jami {pagination.total} ta natija, {pagination.page}-sahifa{' '}
-            {pagination.total_pages} sahifadan
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={!pagination.prev_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Oldingi
-            </button>
-            <span className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded">
-              {pagination.page}
-            </span>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={!pagination.next_page}
-              className="px-3 py-1 text-sm border rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-            >
-              Keyingi
-            </button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        currentPage={pagination?.page || 1}
+        totalPages={pagination?.total_pages || 1}
+        totalItems={pagination?.total || 0}
+        itemsPerPage={limit}
+        onPageChange={handlePageChange}
+        onItemsPerPageChange={handleItemsPerPageChange}
+        className="mt-6"
+      />
     </div>
   )
 }

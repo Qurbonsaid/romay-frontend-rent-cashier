@@ -17,6 +17,7 @@ export interface Client {
     amount: number
     currency: string
   }
+  sales_count?: number
   _id: string
   username: string
   description: string
