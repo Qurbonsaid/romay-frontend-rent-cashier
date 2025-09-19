@@ -12,37 +12,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useState, useMemo } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { z } from 'zod'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import {
-  useCreateProductMutation,
   useGetAllSaleProductsQuery,
   useGetAllRentProductsQuery,
 } from '@/store/product/product.api'
 import type {
   ProductWarehouseItem,
   RentProductWarehouseItem,
-  CreateProductRequest,
 } from '@/store/product/types'
 import { useGetAllCategoryQuery } from '@/store/category/category.api'
-import { useUploadFileMutation } from '@/store/upload/upload.api'
 import { Button } from '@/components/ui/button'
 import { ProductDetailsModal } from '@/components/product-details-modal'
+import { CreateProductDialog } from '@/components/products/CreateProductDialog'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
 
@@ -87,9 +67,6 @@ function ProductPage() {
       return matchesCategory
     })
   }, [getAllProductsData?.data, selectedCategory])
-
-  const [createProduct] = useCreateProductMutation({})
-  const [uploadFile] = useUploadFileMutation()
 
   const role = useGetRole()
 
@@ -178,51 +155,6 @@ function ProductPage() {
   const handleTabChange = (value: string) => {
     setActiveTab(value)
     setCurrentPage(1) // Reset pagination when switching tabs
-  }
-
-  const formSchema = z.object({
-    name: z.string().min(2, 'Kamida 2 ta belgi kiriting'),
-    category: z.string().min(1, 'Kategoriya majburiy'),
-    sku: z.string().min(4, 'Bar-kod kamida 4 ta belgi'),
-    price: z.number().min(0.01, "Narxi 0 dan katta bo'lishi kerak"),
-    images: z.array(z.string()).min(1, 'Kamida 1 ta rasm yuklang'),
-    description: z.string().optional(),
-  })
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      category: '',
-      sku: '',
-      price: 0,
-      images: [],
-      description: '',
-    },
-  })
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    try {
-      const productData: CreateProductRequest = {
-        name: values.name,
-        description: values.description || '',
-        category_id: values.category,
-        price: values.price,
-        status: 'active',
-        currency: 'USD',
-        images: values.images,
-        barcode: values.sku,
-        attributes: [],
-        product_count: 0,
-        from_create: 'manual',
-      }
-
-      await createProduct(productData).unwrap()
-      setOpen(false)
-      form.reset()
-    } catch (error) {
-      console.error('Error creating product:', error)
-    }
   }
 
   return (
@@ -646,176 +578,15 @@ function ProductPage() {
       />
 
       {/* Create Product Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Yangi mahsulot qo'shish</DialogTitle>
-            <DialogDescription>
-              Yangi mahsulot ma'lumotlarini kiriting
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Mahsulot nomi</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Mahsulot nomini kiriting"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Kategoriya</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Kategoriya tanlang" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {getAllCategoriesData?.data?.map((category) => (
-                          <SelectItem key={category._id} value={category._id}>
-                            {category.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="sku"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Bar-kod</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Bar-kod kiriting" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="price"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Narx (USD)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 0)
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tavsif (ixtiyoriy)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Mahsulot tavsifi" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="images"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Rasmlar</FormLabel>
-                    <FormControl>
-                      <div className="space-y-4">
-                        <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                          onChange={async (e) => {
-                            const files = Array.from(e.target.files || [])
-                            const uploadPromises = files.map(async (file) => {
-                              try {
-                                const response = await uploadFile(file).unwrap()
-                                return response.file_path
-                              } catch (error) {
-                                console.error('Upload error:', error)
-                                return null
-                              }
-                            })
-
-                            const uploadedUrls =
-                              await Promise.all(uploadPromises)
-                            const validUrls = uploadedUrls.filter(
-                              (url) => url !== null
-                            ) as string[]
-                            field.onChange([...field.value, ...validUrls])
-                          }}
-                        />
-                        {field.value.length > 0 && (
-                          <div className="grid grid-cols-3 gap-2">
-                            {field.value.map((url, index) => (
-                              <div key={index} className="relative">
-                                <img
-                                  src={url}
-                                  alt={`Upload ${index + 1}`}
-                                  className="w-full h-20 object-cover rounded"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const newImages = [...field.value]
-                                    newImages.splice(index, 1)
-                                    field.onChange(newImages)
-                                  }}
-                                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full">
-                Saqlash
-              </Button>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      <CreateProductDialog
+        open={open}
+        onOpenChange={setOpen}
+        categories={getAllCategoriesData?.data || []}
+        onSuccess={() => {
+          // Optionally refetch data or show success message
+          console.log('Product created successfully')
+        }}
+      />
     </div>
   )
 }

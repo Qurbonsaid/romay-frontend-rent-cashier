@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { Input } from '@/components/ui/input'
 import { Search } from 'lucide-react'
 import { TablePagination } from '@/components/ui/table-pagination'
@@ -32,9 +32,12 @@ function BalanceCell({ value }: { value: number }) {
 }
 
 function Clients() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const initialSearch = (location.state as any)?.search || ''
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialSearch)
 
   const {
     data: clientsResponse,
@@ -47,7 +50,15 @@ function Clients() {
   })
 
   const clientsData = clientsResponse?.data || []
-  const pagination = clientsResponse?.pagination
+  // If navigation passed a search and it returned exactly one client, navigate to its details
+  if (initialSearch && clientsData.length === 1) {
+    navigate(`/clients/${clientsData[0]._id}`)
+  }
+  const pagination = {
+    current_page: clientsResponse?.current_page || 1,
+    page_count: clientsResponse?.page_count || 1,
+    after_filtering_count: clientsResponse?.after_filtering_count || 0,
+  }
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -130,14 +141,12 @@ function Clients() {
                   <tr
                     key={c._id}
                     className="hover:bg-[#F9F9F9] cursor-pointer"
-                    onClick={() =>
-                      (window.location.href = `/ceo/customers/customer-detail/${c._id}`)
-                    }
+                    onClick={() => navigate(`/clients/${c._id}`)}
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-[#18181B]">
                         <Link
-                          to={`/manager/clients/${c._id}`}
+                          to={`/clients/${c._id}`}
                           className="hover:underline"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -177,9 +186,9 @@ function Clients() {
           </div>
 
           <TablePagination
-            currentPage={pagination?.page || 1}
-            totalPages={pagination?.total_pages || 1}
-            totalItems={pagination?.total || 0}
+            currentPage={pagination.current_page}
+            totalPages={pagination.page_count}
+            totalItems={pagination.after_filtering_count}
             itemsPerPage={limit}
             onPageChange={handlePageChange}
             onItemsPerPageChange={handleItemsPerPageChange}

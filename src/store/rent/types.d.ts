@@ -45,7 +45,7 @@ export interface Branch {
 
 export interface Rent {
   _id: string
-  client: Client
+  client: Client | null
   branch: Branch
   client_name: string
   total_rent_price: number
@@ -68,7 +68,7 @@ export interface Product {
   _id: string
   name: string
   description: string
-  category_id: string
+  category_id: string | { _id: string; name: string }
   status: string
   images: string[]
   barcode: string
@@ -84,7 +84,7 @@ export interface RentProductDetail {
   product: Product
   product_total_count: number
   product_active_count: number
-  branch: string
+  branch: string | { _id: string; name: string; address: string }
   product_barcode: string
   from_create: string
   created_at: string

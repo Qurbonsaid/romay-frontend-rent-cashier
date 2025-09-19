@@ -1,6 +1,7 @@
 import baseApi from '../api'
 import type {
   ClientResponse,
+  SingleClientResponse,
   ClientRequest,
   AddClientResponse,
   AddClientRequest,
@@ -41,7 +42,7 @@ export const ClientsApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['clients'],
     }),
-    getOneClient: build.query<ClientResponse, string>({
+    getOneClient: build.query<SingleClientResponse, string>({
       query: (id) => ({
         url: `/client/get-one/${id}`,
         method: 'GET',

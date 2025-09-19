@@ -25,17 +25,35 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useGetBranchQuery } from '@/store/branch/branch.api'
+import { useUserQuery } from '@/store/auth/auth.api'
 
 const HIDE_SIDEBAR_ROUTES = ['/auth/login']
 
 export const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const role = useGetRole()
   const groups = getSidebarGroups(role)
+  const { data: userMe } = useUserQuery()
   // const { data: { data: branches } = {} } = useGetAllBranchesQuery(
   //   {},
   //   { skip: role !== 'ceo' }
   // )
   // const [selectedBranch, setSelectedBranch] = useState<string>('')
+
+  // Get branch ID safely
+  const branchId =
+    typeof userMe?.data.branch_id === 'string'
+      ? userMe.data.branch_id
+      : userMe?.data.branch_id?._id || ''
+
+  const { data: branch } = useGetBranchQuery(
+    {
+      id: branchId,
+    },
+    {
+      skip: !branchId, // Skip the query if branch ID is not available
+    }
+  )
   const { pathname } = useLocation()
 
   const hideSidebar = HIDE_SIDEBAR_ROUTES.includes(pathname)
@@ -140,6 +158,9 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 </SelectContent>
               </Select>
             </div> */}
+            <h1 className="text-md font-medium">
+              {branch?.data.service_balance}
+            </h1>
           </div>
         </header>
         <main className="px-6 py-20">{children}</main>

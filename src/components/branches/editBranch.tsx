@@ -17,7 +17,7 @@ import {
 } from '../ui/select'
 import Modal from '../modal/Modal'
 import { useEffect } from 'react'
-import type { Branch } from './branches'
+import type { Branch } from '@/types/branch'
 import { useGetEmployeesQuery } from '@/store/employee/employee'
 
 interface EditBranchProps {
@@ -51,7 +51,8 @@ export const EditBranchModal = ({
     defaultValues: {
       name: branch?.name || '',
       address: branch?.address || '',
-      manager_ids: branch?.manager_ids?.map((manager) => manager._id) || [],
+      manager_ids:
+        branch?.manager_ids?.map((manager: any) => manager._id) || [],
     },
   })
 
@@ -87,7 +88,8 @@ export const EditBranchModal = ({
       form.reset({
         name: branch.name,
         address: branch.address || '',
-        manager_ids: branch.manager_ids?.map((manager) => manager._id) || [],
+        manager_ids:
+          branch.manager_ids?.map((manager: any) => manager._id) || [],
       })
     }
   }, [branch, form])

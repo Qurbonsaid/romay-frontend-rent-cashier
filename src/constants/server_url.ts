@@ -1,1 +1,1 @@
-export const SERVER_URL = 'https://romay.edumansim.uz'
+export const SERVER_URL = 'https://api.romayonline.uz'

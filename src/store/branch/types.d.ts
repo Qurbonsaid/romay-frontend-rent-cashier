@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-object-type */
+import type { Branch } from '@/types/branch.d'
+
 export interface AddBranchResponse {}
 export interface AddBranchRequest {
   name: string
@@ -32,4 +34,13 @@ export interface GetBranchesRequest {
   search?: string
   page?: number
   limit?: number
+}
+
+export interface GetBranchResponse {
+  success: boolean
+  data: Branch
+}
+
+export interface GetBranchRequest {
+  id: string
 }

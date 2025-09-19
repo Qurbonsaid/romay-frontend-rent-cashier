@@ -37,7 +37,7 @@ export default function LoginPage() {
         return result
       },
       onSuccess: () => {
-        window.location.href = '/dashboard'
+        window.location.href = '/'
       },
       onError: (error) => {
         console.log(error)
