@@ -132,6 +132,22 @@ export default function RentProductDetailsModal({
                 )}
                 <div>
                   <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                    <Tag className="h-4 w-4" />
+                    Kategoriya
+                  </div>
+                  <div className="text-sm text-gray-900">
+                    {typeof product.product.category_id === 'object'
+                      ? (
+                          product.product.category_id as {
+                            _id: string
+                            name: string
+                          }
+                        )?.name || 'Kategoriyasiz'
+                      : product.product.category_id || 'Kategoriyasiz'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
                     <Barcode className="h-4 w-4" />
                     Barkod
                   </div>
@@ -281,7 +297,10 @@ export default function RentProductDetailsModal({
             </div>
             <div>
               <span className="font-medium">Kategoriya ID:</span>{' '}
-              {product.product.category_id}
+              {typeof product.product.category_id === 'object'
+                ? (product.product.category_id as { _id: string; name: string })
+                    ?._id || 'N/A'
+                : product.product.category_id}
             </div>
           </div>
         </div>
