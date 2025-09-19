@@ -11,9 +11,7 @@ import {
 } from '@/components/ui/select'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { useGetAllRentsQuery } from '@/store/rent/rent.api'
-import { useGetClientsQuery } from '@/store/clients/clients.api'
 import type { RentStatus } from '@/store/rent/types'
-import type { Client } from '@/types/clients'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
 import { useNavigate } from 'react-router-dom'
@@ -24,7 +22,7 @@ const formatPrice = (price: number): string => {
 }
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('ru-RU')
+  return new Date(dateString).toLocaleDateString('en-GB')
 }
 
 interface RentUsersTableProps {
@@ -36,7 +34,6 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
   const userRole = useGetRole()
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
-  const [selectedClient, setSelectedClient] = useState<string>('')
   const [selectedStatus, setSelectedStatus] = useState<RentStatus | '' | 'all'>(
     ''
   )
@@ -60,22 +57,14 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
   const canViewRents = CheckRole(userRole, ['ceo', 'manager', 'rent_cashier'])
   const canManageRents = CheckRole(userRole, ['rent_cashier'])
 
-  const { data: clientsData } = useGetClientsQuery(
-    { page: 1, limit: 100 },
-    { skip: !canViewRents }
-  )
-
   const {
     data: rentsData,
     isLoading: rentsLoading,
     error: rentsError,
   } = useGetAllRentsQuery(
     {
-      client:
-        selectedClient === 'all' ? undefined : selectedClient || undefined,
       status:
         selectedStatus === 'all' ? undefined : selectedStatus || undefined,
-
       search: searchTerm || undefined,
       page: currentPage,
       limit: limit,
@@ -96,11 +85,6 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
     page: rentsData?.current_page || 1,
     next_page: rentsData?.next_page !== null,
     prev_page: (rentsData?.current_page || 1) > 1,
-  }
-
-  const handleClientChange = (value: string) => {
-    setSelectedClient(value)
-    setCurrentPage(1)
   }
 
   const handleStatusChange = (value: RentStatus | '') => {
@@ -155,20 +139,6 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
               <SelectItem value="CANCELLED">Bekor qilingan</SelectItem>
             </SelectContent>
           </Select>
-
-          <Select value={selectedClient} onValueChange={handleClientChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Mijozni tanlang" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Barcha mijozlar</SelectItem>
-              {clientsData?.data.map((client: Client) => (
-                <SelectItem key={client._id} value={client._id}>
-                  {client.username}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -177,7 +147,14 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
           <thead className="bg-[#F9F9F9] text-[#71717A] text-sm">
             <tr>
               <th className="px-6 py-3 text-left font-medium">Mijoz ismi</th>
+              <th className="px-6 py-3 text-center font-medium">Filial</th>
+              <th className="px-6 py-3 text-center font-medium">
+                Mahsulotlar soni
+              </th>
               <th className="px-6 py-3 text-center font-medium">Jami summa</th>
+              <th className="px-6 py-3 text-center font-medium">
+                To'langan summa
+              </th>
               <th className="px-6 py-3 text-center font-medium">Holat</th>
               <th className="px-6 py-3 text-center font-medium">
                 Qabul sanasi
@@ -191,7 +168,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
           <tbody className="divide-y divide-[#E4E4E7]">
             {rents.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                   Ijaralar topilmadi
                 </td>
               </tr>
@@ -199,20 +176,49 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
               rents.map((rent) => (
                 <tr
                   key={rent._id}
-                  className="hover:bg-[#F8F9FA] transition-colors cursor-pointer"
-                  onClick={() => onRentClick(rent._id)}
+                  className="hover:bg-[#F8F9FA] transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-[#18181B]">
                       {rent.client_name}
                     </div>
                     <div className="text-xs text-gray-500">
-                      {rent.client.phone}
+                      {rent.client?.phone || "Telefon raqam ko'rsatilmagan"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {typeof rent.branch === 'object' && rent.branch?.name
+                        ? rent.branch.name
+                        : typeof rent.branch === 'string'
+                          ? rent.branch
+                          : "Noma'lum filial"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {rent.rent_products?.length || 0} ta
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
                       {formatPrice(rent.total_rent_price)} so'm
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {formatPrice(
+                        Array.isArray(rent.payments)
+                          ? rent.payments.reduce((sum, payment) => {
+                              const amount =
+                                typeof payment === 'object' && payment?.amount
+                                  ? payment.amount
+                                  : 0
+                              return sum + amount
+                            }, 0)
+                          : 0
+                      )}{' '}
+                      so'm
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -247,10 +253,7 @@ export default function RentUsersTable({ onRentClick }: RentUsersTableProps) {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onRentClick(rent._id)
-                        }}
+                        onClick={() => onRentClick(rent._id)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>

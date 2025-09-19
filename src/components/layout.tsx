@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from './ui/select'
 import { Calendar22 } from './calendar'
+import { ServiceBalance } from './ServiceBalance'
 import { useGetAllBranchesQuery } from '@/store/branch/branch.api'
 
 interface LayoutProps {
@@ -84,7 +85,7 @@ export const Layout = ({ children, role, name, header }: LayoutProps) => {
           {
             label: 'Mijozlar bloki',
             items: [
-              { title: 'Mijozlar', icon: UserRound, url: '/ceo/customers' },
+              { title: 'Mijozlar', icon: UserRound, url: '/clients' },
               { title: "Ta'minotchilar", icon: Contact, url: '/ceo/suppliers' },
               {
                 title: 'Buyurtmalar',
@@ -116,7 +117,7 @@ export const Layout = ({ children, role, name, header }: LayoutProps) => {
             {
               label: 'Mijozlar bloki',
               items: [
-                { title: 'Mijozlar', icon: UserRound, url: '/manager/clients' },
+                { title: 'Mijozlar', icon: UserRound, url: '/clients' },
                 {
                   title: "Ta'minotchilar",
                   icon: Contact,
@@ -156,7 +157,7 @@ export const Layout = ({ children, role, name, header }: LayoutProps) => {
                   {
                     title: 'Mijozlar',
                     icon: UserRound,
-                    url: '/service/clients',
+                    url: '/clients',
                   },
                   {
                     title: 'Buyurtmalar',
@@ -196,7 +197,7 @@ export const Layout = ({ children, role, name, header }: LayoutProps) => {
                     {
                       title: 'Mijozlar',
                       icon: UserRound,
-                      url: '/store/clients',
+                      url: '/clients',
                     },
 
                     {
@@ -315,6 +316,7 @@ export const Layout = ({ children, role, name, header }: LayoutProps) => {
               </div>
             </div>
             <div className="flex gap-4">
+              <ServiceBalance />
               <Calendar22 />
               <Select
                 onValueChange={(value) => {

@@ -21,18 +21,7 @@ import { NotFoundBranches } from './notFoundBranches'
 import { useHandleRequest } from '@/hooks/use-handle-request'
 import { AlertModal } from '../alertModal/alertModal'
 import { toast } from 'sonner'
-
-export interface Branch {
-  _id: string
-  name: string
-  address?: string
-  manager_ids?: {
-    _id: string
-    username: string
-    phone: string
-  }[]
-  isActive: boolean
-}
+import type { Branch } from '@/types/branch'
 
 export default function Branches() {
   const {
@@ -88,7 +77,7 @@ export default function Branches() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {branches?.map((branch: Branch, index: number) => (
+              {branches?.map((branch, index) => (
                 <TableRow key={branch._id}>
                   <TableCell>{index + 1}</TableCell>
                   <TableCell className="font-medium">{branch.name}</TableCell>

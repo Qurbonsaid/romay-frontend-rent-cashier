@@ -93,7 +93,7 @@ export default function History() {
                   // TODO: Uncomment when HistoryDetails component is ready
                   // setSelectedHistory(item as History)
                   // setIsModalOpen(true)
-                  console.log('History item clicked:', item)
+                  // console.log('History item clicked:', item)
                 }}
               >
                 <td className="px-6 py-4 text-sm text-[#18181B]">

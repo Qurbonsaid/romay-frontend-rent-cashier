@@ -11,13 +11,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TablePagination } from '@/components/ui/table-pagination'
-import { Plus, Search } from 'lucide-react'
-import { useGetAllServicesQuery } from '@/store/service/service.api'
+import { Plus, Search, Edit, Trash2 } from 'lucide-react'
+import {
+  useGetAllServicesQuery,
+  useDeleteServiceMutation,
+} from '@/store/service/service.api'
 import { useGetAllMechanicsQuery } from '@/store/mechanic/mechanic.api'
 import type { ServiceStatus } from '@/store/service/types'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
 import AddMechanicDialog from './AddMechanicDialog'
+import MechanicDetailsModal from './MechanicDetailsModal'
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal'
 
 // Utility functions
 const formatPrice = (price: number): string => {
@@ -25,16 +30,21 @@ const formatPrice = (price: number): string => {
 }
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('ru-RU')
+  return new Date(dateString).toLocaleDateString('en-GB')
 }
 
 // Mechanics Table Component
-function MechanicsTable() {
+function MechanicsTable({
+  onMechanicSelect,
+}: {
+  onMechanicSelect: (m: any) => void
+}) {
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
+  const [workTypeFilter, setWorkTypeFilter] = useState<string>('all')
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -47,6 +57,11 @@ function MechanicsTable() {
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value)
+    setCurrentPage(1)
+  }
+
+  const handleWorkTypeChange = (value: string) => {
+    setWorkTypeFilter(value)
     setCurrentPage(1)
   }
 
@@ -64,6 +79,10 @@ function MechanicsTable() {
   } = useGetAllMechanicsQuery(
     {
       search: searchTerm || undefined,
+      work_type:
+        workTypeFilter !== 'all'
+          ? (workTypeFilter as 'SERVICE' | 'FIELD_SERVICE')
+          : undefined,
       page: currentPage,
       limit: limit,
     },
@@ -115,6 +134,16 @@ function MechanicsTable() {
               onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
+          <Select value={workTypeFilter} onValueChange={handleWorkTypeChange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Ish turini tanlang" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Barcha ish turlari</SelectItem>
+              <SelectItem value="SERVICE">Xizmat</SelectItem>
+              <SelectItem value="FIELD_SERVICE">Tashqi xizmati</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -145,6 +174,7 @@ function MechanicsTable() {
                   className={`hover:bg-[#F8F9FA] transition-colors cursor-pointer ${
                     mechanic._id ? 'border-l-4 border-l-transparent' : ''
                   }`}
+                  onClick={() => onMechanicSelect(mechanic)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-[#18181B]">
@@ -166,7 +196,7 @@ function MechanicsTable() {
                     >
                       {mechanic.work_type === 'SERVICE'
                         ? 'Xizmat'
-                        : 'Maydon xizmati'}
+                        : 'Tashqi xizmati'}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -199,8 +229,16 @@ function MechanicsTable() {
   )
 }
 
+// Mechanic details modal local import will be added at bottom via new file
+
 // Services Table Component
-function ServicesTable() {
+function ServicesTable({
+  onEditClick,
+  onDeleteClick,
+}: {
+  onEditClick: (serviceId: string) => void
+  onDeleteClick: (serviceId: string) => void
+}) {
   const navigate = useNavigate()
   const userRole = useGetRole()
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | ''>('')
@@ -349,12 +387,13 @@ function ServicesTable() {
               <th className="px-6 py-3 text-center font-medium">
                 Yetkazish sanasi
               </th>
+              <th className="px-6 py-3 text-center font-medium">Amallar</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E4E4E7]">
             {services.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                   Xizmatlar topilmadi
                 </td>
               </tr>
@@ -365,9 +404,16 @@ function ServicesTable() {
                   className={`hover:bg-[#F8F9FA] transition-colors cursor-pointer ${
                     service._id ? 'border-l-4 border-l-transparent' : ''
                   }`}
+                  onClick={() => navigate(`/repair-details/${service._id}`)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-[#18181B]">
+                    <div
+                      className="text-sm font-medium text-[#18181B] hover:underline cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        navigate('/clients')
+                      }}
+                    >
                       {service.client_name}
                     </div>
                   </td>
@@ -413,6 +459,32 @@ function ServicesTable() {
                       {formatDate(service.delivery_date)}
                     </div>
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onEditClick(service._id)
+                        }}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onDeleteClick(service._id)
+                        }}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </td>
                 </tr>
               ))
             )}
@@ -437,6 +509,40 @@ function ServicesTable() {
 export default function Repairs() {
   const navigate = useNavigate()
   const userRole = useGetRole()
+  const [selectedMechanic, setSelectedMechanic] = useState<any | null>(null)
+  const [isMechanicModalOpen, setIsMechanicModalOpen] = useState(false)
+  const [deleteServiceId, setDeleteServiceId] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation()
+
+  const handleDeleteClick = (serviceId: string) => {
+    setDeleteServiceId(serviceId)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteServiceId) return
+
+    try {
+      await deleteService(deleteServiceId).unwrap()
+      setIsDeleteModalOpen(false)
+      setDeleteServiceId(null)
+      // Toast success message could be added here
+    } catch (error) {
+      // Toast error message could be added here
+      console.error('Failed to delete service:', error)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setIsDeleteModalOpen(false)
+    setDeleteServiceId(null)
+  }
+
+  const handleEditClick = (serviceId: string) => {
+    navigate(`/edit-service/${serviceId}`)
+  }
 
   // Check permissions
   const canViewServices = CheckRole(userRole, [
@@ -479,15 +585,41 @@ export default function Repairs() {
         </TabsList>
         {canViewServices && (
           <TabsContent value="services" className="space-y-4">
-            <ServicesTable />
+            <ServicesTable
+              onEditClick={handleEditClick}
+              onDeleteClick={handleDeleteClick}
+            />
           </TabsContent>
         )}
         {canViewMechanics && (
           <TabsContent value="mechanics" className="space-y-4">
-            <MechanicsTable />
+            <MechanicsTable
+              onMechanicSelect={(m) => {
+                setSelectedMechanic(m)
+                setIsMechanicModalOpen(true)
+              }}
+            />
+            <MechanicDetailsModal
+              mechanicId={selectedMechanic?._id || null}
+              mechanicFromList={selectedMechanic}
+              isOpen={isMechanicModalOpen}
+              onClose={() => {
+                setIsMechanicModalOpen(false)
+                setSelectedMechanic(null)
+              }}
+            />
           </TabsContent>
         )}
       </Tabs>
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Xizmatni o'chirish"
+        description="Bu xizmatni o'chirishni xohlaysizmi? Bu amalni bekor qilib bo'lmaydi."
+        isLoading={isDeleting}
+      />
     </div>
   )
 }

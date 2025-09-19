@@ -6,6 +6,8 @@ import type {
   UpdateBranchRequest,
   GetBranchesResponse,
   GetBranchesRequest,
+  GetBranchResponse,
+  GetBranchRequest,
 } from './types'
 
 export const branchApi = baseApi.injectEndpoints({
@@ -38,6 +40,13 @@ export const branchApi = baseApi.injectEndpoints({
       }),
       providesTags: ['branches'],
     }),
+    getBranch: builder.query<GetBranchResponse, GetBranchRequest>({
+      query: ({ id }) => ({
+        url: `/branch/get-one/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['branches'],
+    }),
     deleteBranch: builder.mutation<void, string>({
       query: (id) => ({
         url: `/branch/delete/${id}`,
@@ -52,5 +61,6 @@ export const {
   useAddBranchMutation,
   useUpdateBranchMutation,
   useGetAllBranchesQuery,
+  useGetBranchQuery,
   useDeleteBranchMutation,
 } = branchApi

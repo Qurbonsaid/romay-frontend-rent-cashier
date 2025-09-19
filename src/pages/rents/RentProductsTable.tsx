@@ -2,8 +2,16 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Eye } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { TablePagination } from '@/components/ui/table-pagination'
 import { useGetAllRentProductsQuery } from '@/store/rent/rent.api'
+import { useGetAllCategoryQuery } from '@/store/category/category.api'
 import type { RentProductDetail } from '@/store/rent/types'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
@@ -14,7 +22,7 @@ const formatPrice = (price: number): string => {
 }
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('ru-RU')
+  return new Date(dateString).toLocaleDateString('en-GB')
 }
 
 interface RentProductsTableProps {
@@ -29,6 +37,7 @@ export default function RentProductsTable({
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -44,12 +53,22 @@ export default function RentProductsTable({
     setCurrentPage(1)
   }
 
+  const handleCategoryChange = (value: string) => {
+    setSelectedCategory(value)
+    setCurrentPage(1)
+  }
+
   const canViewRents = CheckRole(userRole, [
     'ceo',
     'manager',
     'rent_cashier',
     'storekeeper',
   ])
+
+  const { data: categoriesData } = useGetAllCategoryQuery(
+    {},
+    { skip: !canViewRents }
+  )
 
   const {
     data: rentProductsData,
@@ -70,6 +89,19 @@ export default function RentProductsTable({
   }
 
   const rentProducts = rentProductsData?.data || []
+
+  // Filter products by category on client side
+  const filteredProducts =
+    selectedCategory && selectedCategory !== 'all'
+      ? rentProducts.filter((product) => {
+          const categoryId =
+            typeof product.product?.category_id === 'object'
+              ? product.product.category_id._id
+              : product.product?.category_id
+          return categoryId === selectedCategory
+        })
+      : rentProducts
+
   const pagination = {
     total: rentProductsData?.after_filtering_count || 0,
     total_pages: rentProductsData?.page_count || 1,
@@ -104,6 +136,20 @@ export default function RentProductsTable({
             onChange={(e) => handleSearchChange(e.target.value)}
             className="w-[200px]"
           />
+
+          <Select value={selectedCategory} onValueChange={handleCategoryChange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Kategoriya tanlang" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Barcha kategoriyalar</SelectItem>
+              {categoriesData?.data?.map((category) => (
+                <SelectItem key={category._id} value={category._id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -112,10 +158,14 @@ export default function RentProductsTable({
           <thead className="bg-[#F9F9F9] text-[#71717A] text-sm">
             <tr>
               <th className="px-6 py-3 text-left font-medium">Mahsulot</th>
+              <th className="px-6 py-3 text-center font-medium">Kategoriya</th>
+              <th className="px-6 py-3 text-center font-medium">Shtrix kod</th>
               <th className="px-6 py-3 text-center font-medium">Ijara narxi</th>
               <th className="px-6 py-3 text-center font-medium">
                 Mavjud miqdori
               </th>
+              <th className="px-6 py-3 text-center font-medium">Jami miqdor</th>
+              <th className="px-6 py-3 text-center font-medium">Filial</th>
               <th className="px-6 py-3 text-center font-medium">
                 Yaratilgan sana
               </th>
@@ -123,18 +173,17 @@ export default function RentProductsTable({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E4E4E7]">
-            {rentProducts.length === 0 ? (
+            {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
                   Ijara mahsulotlari topilmadi
                 </td>
               </tr>
             ) : (
-              rentProducts.map((rentProduct: RentProductDetail) => (
+              filteredProducts.map((rentProduct: RentProductDetail) => (
                 <tr
                   key={rentProduct._id}
-                  className="hover:bg-[#F8F9FA] transition-colors cursor-pointer"
-                  onClick={() => onProductClick(rentProduct._id)}
+                  className="hover:bg-[#F8F9FA] transition-colors"
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -160,12 +209,53 @@ export default function RentProductsTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
+                      {(() => {
+                        const categoryId = rentProduct.product?.category_id
+                        if (
+                          typeof categoryId === 'object' &&
+                          categoryId?.name
+                        ) {
+                          return categoryId.name
+                        } else if (typeof categoryId === 'string') {
+                          const category = categoriesData?.data?.find(
+                            (cat) => cat._id === categoryId
+                          )
+                          return category?.name || "Kategoriya yo'q"
+                        }
+                        return "Kategoriya yo'q"
+                      })()}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {rentProduct.product?.barcode ||
+                        rentProduct.product_barcode ||
+                        "Kod yo'q"}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
                       {formatPrice(rentProduct.product_rent_price)} so'm
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
                       {rentProduct.product_active_count}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {rentProduct.product_total_count}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <div className="text-sm text-[#18181B]">
+                      {typeof rentProduct.branch === 'object' &&
+                      rentProduct.branch?.name
+                        ? rentProduct.branch.name
+                        : typeof rentProduct.branch === 'string'
+                          ? rentProduct.branch
+                          : "Filial ko'rsatilmagan"}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -178,10 +268,7 @@ export default function RentProductsTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onProductClick(rentProduct._id)
-                        }}
+                        onClick={() => onProductClick(rentProduct._id)}
                       >
                         <Eye className="h-4 w-4" />
                       </Button>

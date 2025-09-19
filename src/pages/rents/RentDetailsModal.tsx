@@ -25,10 +25,10 @@ const formatPrice = (price: number): string => {
 }
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('ru-RU', {
+  return new Date(dateString).toLocaleDateString('en-GB', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
   })
 }
 
@@ -152,46 +152,54 @@ export default function RentDetailsModal({
               <User className="h-5 w-5" />
               Mijoz ma'lumotlari
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-gray-700">Ism</div>
-                <div className="text-sm text-gray-900">
-                  {rent.client.username}
+            {rent.client ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm font-medium text-gray-700">Ism</div>
+                  <div className="text-sm text-gray-900">
+                    {rent.client.username}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <Phone className="h-4 w-4" />
-                  Telefon
-                </div>
-                <div className="text-sm text-gray-900">{rent.client.phone}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  Manzil
-                </div>
-                <div className="text-sm text-gray-900">
-                  {rent.client.address}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-700">Kasbi</div>
-                <div className="text-sm text-gray-900">
-                  {rent.client.profession}
-                </div>
-              </div>
-              {rent.client.description && (
-                <div className="md:col-span-2">
-                  <div className="text-sm font-medium text-gray-700">
-                    Tavsif
+                <div>
+                  <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                    <Phone className="h-4 w-4" />
+                    Telefon
                   </div>
                   <div className="text-sm text-gray-900">
-                    {rent.client.description}
+                    {rent.client.phone}
                   </div>
                 </div>
-              )}
-            </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    Manzil
+                  </div>
+                  <div className="text-sm text-gray-900">
+                    {rent.client.address}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium text-gray-700">Kasbi</div>
+                  <div className="text-sm text-gray-900">
+                    {rent.client.profession}
+                  </div>
+                </div>
+                {rent.client.description && (
+                  <div className="md:col-span-2">
+                    <div className="text-sm font-medium text-gray-700">
+                      Tavsif
+                    </div>
+                    <div className="text-sm text-gray-900">
+                      {rent.client.description}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500">
+                Mijoz ma'lumotlari mavjud emas
+              </div>
+            )}
           </div>
 
           {/* Branch Information */}
@@ -296,7 +304,7 @@ export default function RentDetailsModal({
           </div>
 
           {/* Client Debt Information */}
-          {rent.client.debt && rent.client.debt.amount > 0 && (
+          {rent.client?.debt && rent.client.debt.amount > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-red-900 mb-2">
                 Mijoz qarzi

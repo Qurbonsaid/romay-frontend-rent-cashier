@@ -18,12 +18,10 @@ const formatPrice = (price: number): string => {
 }
 
 const formatDate = (dateString: string): string => {
-  return new Date(dateString).toLocaleDateString('ru-RU', {
+  return new Date(dateString).toLocaleDateString('en-GB', {
     year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    month: '2-digit',
+    day: '2-digit',
   })
 }
 

@@ -4,6 +4,10 @@ import type {
   AddServiceResponse,
   GetAllServicesRequest,
   GetAllServicesResponse,
+  GetServiceResponse,
+  UpdateServiceRequest,
+  UpdateServiceResponse,
+  DeleteServiceResponse,
 } from './types'
 
 export const serviceApi = baseApi.injectEndpoints({
@@ -34,7 +38,58 @@ export const serviceApi = baseApi.injectEndpoints({
       }),
       providesTags: ['services'],
     }),
+    getService: builder.query<GetServiceResponse, string>({
+      query: (id) => ({
+        url: `/service/get/${id}`,
+        method: 'GET',
+      }),
+      providesTags: ['services'],
+    }),
+    updateService: builder.mutation<
+      UpdateServiceResponse,
+      { id: string; data: UpdateServiceRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `/service/update/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      invalidatesTags: ['services'],
+    }),
+    deleteService: builder.mutation<DeleteServiceResponse, string>({
+      query: (id) => ({
+        url: `/service/delete/${id}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: ['services'],
+    }),
+    cancelService: builder.mutation<UpdateServiceResponse, string>({
+      query: (id) => ({
+        url: `/service/cancel/${id}`,
+        method: 'PUT',
+      }),
+      invalidatesTags: ['services'],
+    }),
+    completeService: builder.mutation<
+      UpdateServiceResponse,
+      { id: string; payments: any[] }
+    >({
+      query: ({ id, payments }) => ({
+        url: `/service/complete/${id}`,
+        method: 'PUT',
+        body: { payments },
+      }),
+      invalidatesTags: ['services'],
+    }),
   }),
 })
 
-export const { useAddServiceMutation, useGetAllServicesQuery } = serviceApi
+export const {
+  useAddServiceMutation,
+  useGetAllServicesQuery,
+  useGetServiceQuery,
+  useUpdateServiceMutation,
+  useDeleteServiceMutation,
+  useCancelServiceMutation,
+  useCompleteServiceMutation,
+} = serviceApi
