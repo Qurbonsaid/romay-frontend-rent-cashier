@@ -3,31 +3,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { PageTitle } from '@/components/PageTitle'
 import RentUsersTable from './RentUsersTable'
 import RentProductsTable from './RentProductsTable'
-import RentDetailsModal from './RentDetailsModal'
 import RentProductDetailsModal from './RentProductDetailsModal'
 
 export default function Rents() {
-  const [selectedRentId, setSelectedRentId] = useState<string | null>(null)
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null
   )
   const [isProductDetailsModalOpen, setIsProductDetailsModalOpen] =
     useState(false)
 
-  const handleRentClick = (rentId: string) => {
-    setSelectedRentId(rentId)
-    setIsDetailsModalOpen(true)
-  }
-
   const handleProductClick = (productId: string) => {
     setSelectedProductId(productId)
     setIsProductDetailsModalOpen(true)
-  }
-
-  const handleCloseDetailsModal = () => {
-    setIsDetailsModalOpen(false)
-    setSelectedRentId(null)
   }
 
   const handleCloseProductDetailsModal = () => {
@@ -46,19 +33,13 @@ export default function Rents() {
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
-          <RentUsersTable onRentClick={handleRentClick} />
+          <RentUsersTable />
         </TabsContent>
 
         <TabsContent value="products" className="space-y-4">
           <RentProductsTable onProductClick={handleProductClick} />
         </TabsContent>
       </Tabs>
-
-      <RentDetailsModal
-        rentId={selectedRentId}
-        isOpen={isDetailsModalOpen}
-        onClose={handleCloseDetailsModal}
-      />
 
       <RentProductDetailsModal
         productId={selectedProductId}

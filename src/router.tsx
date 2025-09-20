@@ -10,6 +10,8 @@ import EditService from './pages/repairs/EditService'
 import ProductPage from './pages/products/products'
 import Rents from './pages/rents/rents'
 import AddRent from './pages/rents/AddRent'
+import EditRent from './pages/rents/EditRent.tsx'
+import RentDetails from './pages/rents/rentDetails'
 
 export const AppRouter = () => {
   return (
@@ -20,6 +22,12 @@ export const AppRouter = () => {
       </Route>
       <Route path="rents/add" element={<PrivateRoute />}>
         <Route index element={<AddRent />}></Route>
+      </Route>
+      <Route path="rents/edit/:id" element={<PrivateRoute />}>
+        <Route index element={<EditRent />}></Route>
+      </Route>
+      <Route path="rent-details/:id" element={<PrivateRoute />}>
+        <Route index element={<RentDetails />} />
       </Route>
       <Route path={'auth'}>
         <Route path={'login'} element={<LoginPage />} />

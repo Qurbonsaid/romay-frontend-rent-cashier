@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useGetBranchQuery } from '@/store/branch/branch.api'
 import { useUserQuery } from '@/store/auth/auth.api'
+import { formatCurrency } from '@/utils/numberFormat'
 
 const HIDE_SIDEBAR_ROUTES = ['/auth/login']
 
@@ -158,9 +159,14 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 </SelectContent>
               </Select>
             </div> */}
-            <h1 className="text-md font-medium">
-              {branch?.data.service_balance}
-            </h1>
+            <div className="flex items-center gap-2 text-sm font-medium text-gray-700 whitespace-nowrap">
+              <span>Balance:</span>
+              <span className="text-green-600">
+                {branch?.data.service_balance
+                  ? formatCurrency(branch.data.service_balance)
+                  : "0 so'm"}
+              </span>
+            </div>
           </div>
         </header>
         <main className="px-6 py-20">{children}</main>

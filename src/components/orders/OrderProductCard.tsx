@@ -27,9 +27,14 @@ export function OrderProductCard({ rentProduct }: OrderProductCardProps) {
     data: productDetails,
     isLoading,
     isError,
-  } = useGetDetailedRentProductQuery(rentProduct.rent_product || '', {
-    skip: !rentProduct.rent_product,
-  })
+  } = useGetDetailedRentProductQuery(
+    typeof rentProduct.rent_product === 'string'
+      ? rentProduct.rent_product
+      : rentProduct.rent_product?._id || '',
+    {
+      skip: !rentProduct.rent_product,
+    }
+  )
 
   // Debug logging for API response
   // console.log('Product details:', productDetails, 'Error:', error)
@@ -37,7 +42,11 @@ export function OrderProductCard({ rentProduct }: OrderProductCardProps) {
   // Show basic info even when detailed API fails
   const productName =
     productDetails?.data?.product?.name ||
-    rentProduct.rent_product ||
+    (typeof rentProduct.rent_product === 'object' &&
+      rentProduct.rent_product?.product_barcode) ||
+    (typeof rentProduct.rent_product === 'string'
+      ? rentProduct.rent_product
+      : null) ||
     "Noma'lum mahsulot"
   const productId = rentProduct._id || 'N/A'
 

@@ -1,7 +1,7 @@
 export type RentStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 
 export interface RentProduct {
-  rent_product: string | null
+  rent_product: string | RentProductDetail | null
   rent_product_count: number
   _id: string
 }

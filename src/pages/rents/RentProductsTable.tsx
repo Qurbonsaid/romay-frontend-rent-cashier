@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Eye } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -159,23 +157,20 @@ export default function RentProductsTable({
             <tr>
               <th className="px-6 py-3 text-left font-medium">Mahsulot</th>
               <th className="px-6 py-3 text-center font-medium">Kategoriya</th>
-              <th className="px-6 py-3 text-center font-medium">Shtrix kod</th>
+              <th className="px-6 py-3 text-center font-medium">Bar kod</th>
               <th className="px-6 py-3 text-center font-medium">Ijara narxi</th>
               <th className="px-6 py-3 text-center font-medium">
                 Mavjud miqdori
               </th>
-              <th className="px-6 py-3 text-center font-medium">Jami miqdor</th>
-              <th className="px-6 py-3 text-center font-medium">Filial</th>
               <th className="px-6 py-3 text-center font-medium">
                 Yaratilgan sana
               </th>
-              <th className="px-6 py-3 text-center font-medium">Amallar</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#E4E4E7]">
             {filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
                   Ijara mahsulotlari topilmadi
                 </td>
               </tr>
@@ -183,7 +178,8 @@ export default function RentProductsTable({
               filteredProducts.map((rentProduct: RentProductDetail) => (
                 <tr
                   key={rentProduct._id}
-                  className="hover:bg-[#F8F9FA] transition-colors"
+                  className="hover:bg-[#F8F9FA] transition-colors cursor-pointer"
+                  onClick={() => onProductClick(rentProduct._id)}
                 >
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -245,33 +241,7 @@ export default function RentProductsTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
-                      {rentProduct.product_total_count}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-[#18181B]">
-                      {typeof rentProduct.branch === 'object' &&
-                      rentProduct.branch?.name
-                        ? rentProduct.branch.name
-                        : typeof rentProduct.branch === 'string'
-                          ? rentProduct.branch
-                          : "Filial ko'rsatilmagan"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-[#18181B]">
                       {formatDate(rentProduct.created_at)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onProductClick(rentProduct._id)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
                     </div>
                   </td>
                 </tr>
