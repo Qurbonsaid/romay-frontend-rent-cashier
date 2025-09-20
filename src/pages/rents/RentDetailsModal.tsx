@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useGetRentQuery } from '@/store/rent/rent.api'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import {
   Calendar,
   MapPin,
@@ -63,13 +64,20 @@ export default function RentDetailsModal({
   isOpen,
   onClose,
 }: RentDetailsModalProps) {
+  const branch = useGetBranch()
   const {
     data: rentData,
     isLoading,
     error,
-  } = useGetRentQuery(rentId!, {
-    skip: !rentId || !isOpen,
-  })
+  } = useGetRentQuery(
+    {
+      id: rentId!,
+      branch: branch?._id,
+    },
+    {
+      skip: !rentId || !isOpen || !branch,
+    }
+  )
 
   const rent = rentData?.data
 
@@ -157,7 +165,7 @@ export default function RentDetailsModal({
                 <div>
                   <div className="text-sm font-medium text-gray-700">Ism</div>
                   <div className="text-sm text-gray-900">
-                    {rent.client.username}
+                    {rent.client.username || rent.client_name || "Noma'lum"}
                   </div>
                 </div>
                 <div>
@@ -166,7 +174,7 @@ export default function RentDetailsModal({
                     Telefon
                   </div>
                   <div className="text-sm text-gray-900">
-                    {rent.client.phone}
+                    {rent.client.phone || "Telefon ko'rsatilmagan"}
                   </div>
                 </div>
                 <div>
@@ -175,13 +183,13 @@ export default function RentDetailsModal({
                     Manzil
                   </div>
                   <div className="text-sm text-gray-900">
-                    {rent.client.address}
+                    {rent.client.address || "Manzil ko'rsatilmagan"}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm font-medium text-gray-700">Kasbi</div>
                   <div className="text-sm text-gray-900">
-                    {rent.client.profession}
+                    {rent.client.profession || "Kasb ko'rsatilmagan"}
                   </div>
                 </div>
                 {rent.client.description && (
@@ -202,26 +210,7 @@ export default function RentDetailsModal({
             )}
           </div>
 
-          {/* Branch Information */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
-              Filial ma'lumotlari
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-gray-700">Nomi</div>
-                <div className="text-sm text-gray-900">{rent.branch.name}</div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-700">Manzil</div>
-                <div className="text-sm text-gray-900">
-                  {rent.branch.address}
-                </div>
-              </div>
-            </div>
-          </div>
-
+          {/* Products Information */}
           {/* Rent Products */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -266,7 +255,7 @@ export default function RentDetailsModal({
                   Jami ijara narxi
                 </div>
                 <div className="text-xl font-bold text-green-600">
-                  {formatPrice(rent.total_rent_price)} so'm
+                  {formatPrice(rent.total_rent_price || 0)} so'm
                 </div>
               </div>
               <div>
@@ -274,18 +263,21 @@ export default function RentDetailsModal({
                   To'lovlar soni
                 </div>
                 <div className="text-sm text-gray-900">
-                  {rent.payments.length} ta
+                  {rent.payments && Array.isArray(rent.payments)
+                    ? rent.payments.length
+                    : 0}{' '}
+                  ta
                 </div>
               </div>
             </div>
 
-            {rent.payments.length > 0 && (
+            {rent.payments && rent.payments.length > 0 && (
               <div className="mt-4">
                 <div className="text-sm font-medium text-gray-700 mb-3">
                   To'lovlar tarixi
                 </div>
                 <div className="space-y-2">
-                  {rent.payments.map((_, index) => (
+                  {rent.payments.map((payment, index) => (
                     <div
                       key={index}
                       className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
@@ -294,7 +286,9 @@ export default function RentDetailsModal({
                         To'lov #{index + 1}
                       </span>
                       <span className="text-sm font-medium text-gray-900">
-                        {/* Payment details would go here */}
+                        {typeof payment === 'object' && payment?.amount
+                          ? `${formatPrice(payment.amount)} so'm`
+                          : "Summa ko'rsatilmagan"}
                       </span>
                     </div>
                   ))}

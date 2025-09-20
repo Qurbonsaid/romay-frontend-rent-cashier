@@ -87,10 +87,13 @@ export const rentApi = baseApi.injectEndpoints({
       providesTags: ['rents'],
     }),
 
-    getRent: builder.query<GetRentResponse, string>({
-      query: (id) => ({
+    getRent: builder.query<GetRentResponse, { id: string; branch?: string }>({
+      query: ({ id, branch }) => ({
         url: `/rent/get-one/${id}`,
         method: 'GET',
+        params: {
+          ...(branch && { branch }),
+        },
       }),
       providesTags: ['rents'],
     }),

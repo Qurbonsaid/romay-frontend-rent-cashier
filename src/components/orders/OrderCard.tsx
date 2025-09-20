@@ -3,7 +3,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
-  Building2,
   ChevronDown,
   ChevronUp,
   CreditCard,
@@ -107,12 +106,38 @@ export function OrderCard({
           </div>
         </div>
 
-        {/* Branch Information */}
-        <div className="flex items-center gap-2 mb-4 text-sm">
-          <Building2 className="h-4 w-4 text-gray-400" />
-          <span className="text-gray-600">Filial:</span>
-          <span className="font-medium text-gray-900">{rent.branch.name}</span>
-          <span className="text-gray-500">• {rent.branch.address}</span>
+        {/* Product Summary */}
+        <div className="flex items-center gap-4 mb-4 p-3 bg-blue-50 rounded-lg">
+          <Package className="h-5 w-5 text-blue-600" />
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <div className="text-xs text-blue-600 font-medium">
+                MAHSULOTLAR
+              </div>
+              <div className="text-lg font-bold text-blue-900">
+                {rent.rent_products?.length || 0}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-green-600 font-medium">
+                JAMI MIQDOR
+              </div>
+              <div className="text-lg font-bold text-green-900">
+                {rent.rent_products?.reduce(
+                  (sum, item) => sum + item.rent_product_count,
+                  0
+                ) || 0}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-xs text-purple-600 font-medium">
+                JAMI SUMMA
+              </div>
+              <div className="text-lg font-bold text-purple-900">
+                {(rent.total_rent_price || 0).toLocaleString()} so'm
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Quick Summary Grid */}

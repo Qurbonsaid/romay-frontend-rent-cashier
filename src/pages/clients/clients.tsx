@@ -7,6 +7,7 @@ import { TableSkeleton } from '../../components/ui/table-skeleton'
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useGetRole } from '@/hooks/use-get-role'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 import { useState } from 'react'
 import AddClientDialog from './AddClientDialog'
@@ -38,6 +39,8 @@ function Clients() {
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [search, setSearch] = useState(initialSearch)
+  const branch = useGetBranch()
+  const role = useGetRole()
 
   const {
     data: clientsResponse,
@@ -47,6 +50,7 @@ function Clients() {
     search,
     page: currentPage,
     limit,
+    branch_id: typeof branch === 'object' ? branch._id : branch,
   })
 
   const clientsData = clientsResponse?.data || []
@@ -73,8 +77,6 @@ function Clients() {
     setSearch(value)
     setCurrentPage(1)
   }
-
-  const role = useGetRole()
 
   const [open, setOpen] = useState(false)
   return (
@@ -133,7 +135,6 @@ function Clients() {
                   <th className="px-6 py-3 text-center font-medium">
                     Buyurtmalar soni
                   </th>
-                  <th className="px-6 py-3 text-center font-medium">Filial</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E4E4E7]">
@@ -172,11 +173,6 @@ function Clients() {
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="text-sm text-[#18181B]">
                         {/* Orders count not available in API response */}0
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="text-sm text-[#18181B]">
-                        {c.branch_id?.name || "Noma'lum"}
                       </div>
                     </td>
                   </tr>

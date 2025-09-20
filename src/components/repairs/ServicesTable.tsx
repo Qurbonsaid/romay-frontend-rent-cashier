@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TablePagination } from '@/components/ui/table-pagination'
@@ -10,11 +11,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Search, Plus } from 'lucide-react'
-import { useGetAllServicesQuery } from '@/store/service/service.api'
+import { Search, Plus, Edit, Trash2 } from 'lucide-react'
+import {
+  useGetAllServicesQuery,
+  useDeleteServiceMutation,
+} from '@/store/service/service.api'
 import type { ServiceStatus } from '@/store/service/types'
 import { useGetRole } from '@/hooks/use-get-role'
 import { CheckRole } from '@/utils/checkRole'
+import ConfirmDeleteModal from '@/components/ConfirmDeleteModal'
 
 const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('uz-UZ').format(price)
@@ -57,6 +62,10 @@ export function ServicesTable() {
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
+  const [deleteServiceId, setDeleteServiceId] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+
+  const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation()
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
@@ -75,6 +84,39 @@ export function ServicesTable() {
   const handleStatusChange = (status: ServiceStatus | '') => {
     setSelectedStatus(status)
     setCurrentPage(1)
+  }
+
+  const handleEditClick = (serviceId: string) => {
+    navigate(`/repairs/edit-service/${serviceId}`)
+  }
+
+  const handleDeleteClick = (serviceId: string, createdDate: string) => {
+    // Check if the service was created today
+    const today = new Date()
+    const created = new Date(createdDate)
+    today.setHours(0, 0, 0, 0)
+    created.setHours(0, 0, 0, 0)
+
+    if (created.getTime() !== today.getTime()) {
+      toast.error("Faqat bugun yaratilgan xizmatlarni o'chirish mumkin!")
+      return
+    }
+
+    setDeleteServiceId(serviceId)
+    setIsDeleteModalOpen(true)
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!deleteServiceId) return
+
+    try {
+      await deleteService(deleteServiceId).unwrap()
+      toast.success("Xizmat muvaffaqiyatli o'chirildi")
+      setIsDeleteModalOpen(false)
+      setDeleteServiceId(null)
+    } catch {
+      toast.error("Xizmatni o'chirishda xatolik yuz berdi")
+    }
   }
 
   // Check permissions for service/get-all - ceo, manager, rent_cashier
@@ -225,15 +267,43 @@ export function ServicesTable() {
                       {formatDate(service.received_date)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          navigate(`/repairs/service/${service._id}`)
-                        }
-                      >
-                        Ko'rish
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/repairs/service/${service._id}`)
+                          }
+                        >
+                          Ko'rish
+                        </Button>
+                        {(userRole === 'ceo' || userRole === 'manager') && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditClick(service._id)}
+                              className="text-blue-600 hover:text-blue-700"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                handleDeleteClick(
+                                  service._id,
+                                  service.received_date
+                                )
+                              }
+                              className="text-red-600 hover:text-red-700"
+                              disabled={isDeleting}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -268,6 +338,19 @@ export function ServicesTable() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false)
+          setDeleteServiceId(null)
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Xizmatni o'chirish"
+        description="Ushbu xizmatni o'chirishni istaysizmi? Bu amalni bekor qilib bo'lmaydi."
+        isLoading={isDeleting}
+      />
     </div>
   )
 }
