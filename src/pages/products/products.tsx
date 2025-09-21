@@ -21,12 +21,14 @@ import type {
 } from '@/store/product/types'
 import { useGetAllCategoryQuery } from '@/store/category/category.api'
 import { Button } from '@/components/ui/button'
-import { ProductDetailsModal } from '@/components/product-details-modal'
+import ProductDetailsModal from '@/components/product-details-modal'
 import { CreateProductDialog } from '@/components/products/CreateProductDialog'
 import { useGetRole } from '@/hooks/use-get-role'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 
 function ProductPage() {
+  const branch = useGetBranch()
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [search, setSearch] = useState('')
@@ -38,12 +40,14 @@ function ProductPage() {
     search,
     page: currentPage,
     limit,
+    branch: branch?._id,
   })
 
   const { data: rentProductsData } = useGetAllRentProductsQuery({
     search,
     page: currentPage,
     limit,
+    branch: branch?._id,
   })
 
   // Use the appropriate data based on active tab

@@ -3,6 +3,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import ProductDetailsModal from '@/components/ProductDetailsModal'
+import {
   ChevronDown,
   ChevronUp,
   CreditCard,
@@ -13,8 +22,8 @@ import {
   CheckCircle,
   XCircle,
 } from 'lucide-react'
-import type { Rent } from '@/store/rent/types'
-import { OrderProductCard } from './OrderProductCard'
+import type { Rent, RentProduct } from '@/store/rent/types'
+import { useState } from 'react'
 
 interface OrderCardProps {
   rent: Rent
@@ -77,6 +86,11 @@ export function OrderCard({
   isExpanded,
   onToggleExpansion,
 }: OrderCardProps) {
+  const [selectedProduct, setSelectedProduct] = useState<RentProduct | null>(
+    null
+  )
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false)
+
   const totalPaid = rent.payments.reduce(
     (sum, payment) => sum + payment.amount,
     0
@@ -84,15 +98,26 @@ export function OrderCard({
   const balance = rent.total_rent_price - totalPaid
   const balanceInfo = getBalanceInfo(rent.total_rent_price, rent.payments)
 
+  const openProductModal = (product: RentProduct) => {
+    setSelectedProduct(product)
+    setIsProductModalOpen(true)
+  }
+
+  const closeProductModal = () => {
+    setSelectedProduct(null)
+    setIsProductModalOpen(false)
+  }
+
+  const formatPrice = (price: number): string => {
+    return new Intl.NumberFormat('uz-UZ').format(price)
+  }
+
   return (
     <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
-      {/* Order Header */}
+      {/* Order Header - ID removed, layout updated */}
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="font-semibold text-lg text-gray-900">
-              #{rent._id.slice(-8)}
-            </span>
             <RentStatusBadge status={rent.status} />
             <Badge
               className={`${balanceInfo.bg} ${balanceInfo.color} border-0`}
@@ -106,9 +131,14 @@ export function OrderCard({
           </div>
         </div>
 
-        {/* Product Summary */}
-        <div className="flex items-center gap-4 mb-4 p-3 bg-blue-50 rounded-lg">
-          <Package className="h-5 w-5 text-blue-600" />
+        {/* Product Summary - Totals moved to right */}
+        <div className="flex items-center justify-between mb-4 p-3 bg-blue-50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-blue-600" />
+            <span className="text-sm font-medium text-blue-900">
+              Mahsulotlar
+            </span>
+          </div>
           <div className="flex items-center gap-6">
             <div className="text-center">
               <div className="text-xs text-blue-600 font-medium">
@@ -240,26 +270,153 @@ export function OrderCard({
               </div>
             )}
 
-            {/* Products Section */}
+            {/* Products Section - Table Format like RentDetails */}
             {rent.rent_products && rent.rent_products.length > 0 && (
               <div>
                 <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <Package className="h-4 w-4" />
                   Mahsulotlar ({rent.rent_products.length})
                 </h4>
-                <div className="space-y-3">
-                  {rent.rent_products.map((rentProduct, index) => (
-                    <OrderProductCard
-                      key={`${rentProduct._id}-${index}`}
-                      rentProduct={rentProduct}
-                    />
-                  ))}
+
+                {/* Products Table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="max-h-80 overflow-y-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Mahsulot
+                          </TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Kategoriya
+                          </TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Miqdor
+                          </TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Narx
+                          </TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Jami
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {rent.rent_products.map(
+                          (rentProduct: RentProduct, index: number) => (
+                            <TableRow
+                              key={index}
+                              className="hover:bg-gray-50 cursor-pointer h-12"
+                              onClick={() => openProductModal(rentProduct)}
+                            >
+                              {/* Product Column */}
+                              <TableCell className="px-4 py-2">
+                                <div className="flex items-center gap-2">
+                                  {/* Product Image */}
+                                  <div className="flex-shrink-0">
+                                    {typeof rentProduct.rent_product ===
+                                      'object' &&
+                                    rentProduct.rent_product?.product?.images &&
+                                    rentProduct.rent_product.product.images
+                                      .length > 0 ? (
+                                      <img
+                                        src={
+                                          rentProduct.rent_product.product
+                                            .images[0]
+                                        }
+                                        alt={
+                                          rentProduct.rent_product.product.name
+                                        }
+                                        className="w-8 h-8 object-cover rounded border"
+                                        onError={(e) => {
+                                          const target =
+                                            e.target as HTMLImageElement
+                                          target.src =
+                                            'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAzMEMyNS41MjI5IDMwIDMwIDI1LjUyMjkgMzAgMjBDMzAgMTQuNDc3MSAyNS41MjI5IDEwIDIwIDEwQzE0LjQ3NzEgMTAgMTAgMTQuNDc3MSAxMCAyMEMxMCAyNS41MjI5IDE0LjQ3NzEgMzAgMjAgMzBaIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0xNCAyMEwxNy41IDIzLjVMMjYgMTUiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg=='
+                                        }}
+                                      />
+                                    ) : (
+                                      <div className="w-8 h-8 bg-gray-100 rounded border flex items-center justify-center">
+                                        <span className="text-gray-400 text-xs">
+                                          📦
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {/* Product Name */}
+                                  <div className="min-w-0 flex-1">
+                                    <div className="font-medium text-gray-900 text-sm truncate">
+                                      {typeof rentProduct.rent_product ===
+                                        'object' &&
+                                      rentProduct.rent_product?.product?.name
+                                        ? rentProduct.rent_product.product.name
+                                        : "Noma'lum mahsulot"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </TableCell>
+
+                              {/* Category Column */}
+                              <TableCell className="px-4 py-2 text-gray-600 text-sm">
+                                {typeof rentProduct.rent_product === 'object' &&
+                                rentProduct.rent_product?.product?.category_id
+                                  ? typeof rentProduct.rent_product.product
+                                      .category_id === 'object'
+                                    ? rentProduct.rent_product.product
+                                        .category_id.name
+                                    : rentProduct.rent_product.product
+                                        .category_id
+                                  : "Noma'lum"}
+                              </TableCell>
+
+                              {/* Quantity Column */}
+                              <TableCell className="px-4 py-2">
+                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium">
+                                  {rentProduct.rent_product_count}
+                                </span>
+                              </TableCell>
+
+                              {/* Price Column */}
+                              <TableCell className="px-4 py-2 font-medium text-gray-900 text-sm">
+                                {typeof rentProduct.rent_product === 'object' &&
+                                rentProduct.rent_product?.product_rent_price
+                                  ? formatPrice(
+                                      rentProduct.rent_product
+                                        .product_rent_price
+                                    )
+                                  : "Narx yo'q"}
+                              </TableCell>
+
+                              {/* Total Column */}
+                              <TableCell className="px-4 py-2 font-semibold text-purple-600 text-sm">
+                                {typeof rentProduct.rent_product === 'object' &&
+                                rentProduct.rent_product?.product_rent_price
+                                  ? formatPrice(
+                                      rentProduct.rent_product
+                                        .product_rent_price *
+                                        rentProduct.rent_product_count
+                                    )
+                                  : 'Hisoblanmagan'}
+                              </TableCell>
+                            </TableRow>
+                          )
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             )}
           </div>
         </CardContent>
       )}
+
+      {/* Product Details Modal */}
+      <ProductDetailsModal
+        selectedProduct={selectedProduct}
+        isOpen={isProductModalOpen}
+        onClose={closeProductModal}
+      />
     </Card>
   )
 }

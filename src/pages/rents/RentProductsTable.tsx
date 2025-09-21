@@ -12,6 +12,7 @@ import { useGetAllRentProductsQuery } from '@/store/rent/rent.api'
 import { useGetAllCategoryQuery } from '@/store/category/category.api'
 import type { RentProductDetail } from '@/store/rent/types'
 import { useGetRole } from '@/hooks/use-get-role'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 import { useNavigate } from 'react-router-dom'
 
@@ -32,6 +33,7 @@ export default function RentProductsTable({
 }: RentProductsTableProps) {
   const navigate = useNavigate()
   const userRole = useGetRole()
+  const branch = useGetBranch()
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
@@ -77,6 +79,7 @@ export default function RentProductsTable({
       search: searchTerm || undefined,
       page: currentPage,
       limit: limit,
+      branch: branch?._id,
     },
     { skip: !canViewRents }
   )

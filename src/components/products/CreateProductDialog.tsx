@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Button } from '@/components/ui/button'
 import { useCreateProductMutation } from '@/store/product/product.api'
 import { useUploadFileMutation } from '@/store/upload/upload.api'
@@ -221,14 +222,12 @@ export function CreateProductDialog({
                 <FormItem>
                   <FormLabel>Narx (USD) *</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
+                    <NumberInput
+                      allowDecimals={true}
+                      decimalPlaces={2}
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) =>
-                        field.onChange(parseFloat(e.target.value) || 0)
-                      }
+                      value={field.value}
+                      onChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />

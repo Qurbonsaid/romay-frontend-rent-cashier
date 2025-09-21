@@ -13,6 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
@@ -243,11 +244,10 @@ export function ServiceForm({
               <FormItem>
                 <FormLabel>Xizmat narxi *</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="0"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
@@ -263,11 +263,10 @@ export function ServiceForm({
               <FormItem>
                 <FormLabel>Naqd to'lov</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="0"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />
@@ -283,11 +282,10 @@ export function ServiceForm({
               <FormItem>
                 <FormLabel>Terminal to'lov</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
+                  <NumberInput
                     placeholder="0"
-                    {...field}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
                 <FormMessage />

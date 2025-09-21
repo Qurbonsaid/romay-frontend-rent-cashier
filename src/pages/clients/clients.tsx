@@ -130,10 +130,14 @@ function Clients() {
                   <th className="px-6 py-3 text-left font-medium">
                     Telefon raqami
                   </th>
+                  <th className="px-6 py-3 text-left font-medium">Kasbi</th>
                   <th className="px-6 py-3 text-left font-medium">Toifa</th>
                   <th className="px-6 py-3 text-left font-medium">Qarz</th>
                   <th className="px-6 py-3 text-center font-medium">
-                    Buyurtmalar soni
+                    Sotuvlar soni
+                  </th>
+                  <th className="px-6 py-3 text-left font-medium">
+                    Qo'shilgan sana
                   </th>
                 </tr>
               </thead>
@@ -162,6 +166,11 @@ function Clients() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-[#18181B]">
+                        {c.profession || 'Mavjud emas'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[#18181B]">
                         {c.customer_tier || 'Mavjud emas'}
                       </div>
                     </td>
@@ -172,7 +181,12 @@ function Clients() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="text-sm text-[#18181B]">
-                        {/* Orders count not available in API response */}0
+                        {c.sales_count || 0}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-[#18181B]">
+                        {new Date(c.created_at).toLocaleDateString('en-GB')}
                       </div>
                     </td>
                   </tr>

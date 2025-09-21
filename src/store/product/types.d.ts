@@ -105,6 +105,7 @@ export interface GetAllProductsRequest {
   page?: number
   limit?: number
   search?: string
+  branch?: string
 }
 
 export interface CreateProductRequest {

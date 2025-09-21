@@ -116,6 +116,7 @@ export default function AddRent() {
       search: productSearch || undefined,
       page: 1,
       limit: 1000,
+      branch: branch?._id,
     })
 
   const [addRent, { isLoading: isSubmitting }] = useAddRentMutation()

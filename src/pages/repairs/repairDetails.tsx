@@ -27,8 +27,9 @@ import {
   useCancelServiceMutation,
   useCompleteServiceMutation,
 } from '@/store/service/service.api'
-import { ProductDetailsModal } from '@/components/product-details-modal'
+import ProductDetailsModal from '@/components/product-details-modal'
 import { useGetRole } from '@/hooks/use-get-role'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 import { formatCurrency } from '@/utils/numberFormat'
 import type { ProductWarehouseItem } from '@/store/product/types'
@@ -48,6 +49,7 @@ export default function RepairDetails() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const userRole = useGetRole()
+  const branch = useGetBranch()
   const [selectedProduct, setSelectedProduct] =
     useState<ProductWarehouseItem | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -90,9 +92,15 @@ export default function RepairDetails() {
     data: serviceResponse,
     isLoading,
     isError,
-  } = useGetServiceQuery(id!, {
-    skip: !id || !CheckRole(userRole, ['rent_cashier']),
-  })
+  } = useGetServiceQuery(
+    {
+      id: id!,
+      branch: branch?._id,
+    },
+    {
+      skip: !id || !CheckRole(userRole, ['rent_cashier']) || !branch,
+    }
+  )
 
   const [cancelService, { isLoading: isCanceling }] = useCancelServiceMutation()
   const [completeService, { isLoading: isCompleting }] =
@@ -101,7 +109,7 @@ export default function RepairDetails() {
   // Check permissions - only allow rent_cashier role
   useEffect(() => {
     if (!CheckRole(userRole, ['rent_cashier'])) {
-      toast.error('This application is not for you!')
+      toast.error('Bu ilova siz uchun emas!')
       navigate('/auth/login')
       return
     }
@@ -472,23 +480,92 @@ export default function RepairDetails() {
             </div>
 
             <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <div className="text-sm text-gray-500">To'lov holati</div>
-              <div className="mt-2">
-                <Badge>
-                  {service.status === 'COMPLETED' ? "To'langan" : 'Kutilmoqda'}
-                </Badge>
+              <div className="text-sm text-gray-500">Mahsulotlar summasi</div>
+              <div className="text-xl font-semibold text-gray-900">
+                {formatCurrency(productsSummary.totalSum)}
               </div>
             </div>
 
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
-              <div className="text-sm text-gray-500">Xizmat holati</div>
-              <div className="text-sm text-gray-600 mt-2">
-                {service.status === 'COMPLETED'
-                  ? 'Tugallangan'
-                  : 'Davom etmoqda'}
+              <div className="text-sm text-gray-500">Mahsulotlar miqdori</div>
+              <div className="text-xl font-semibold text-yellow-600">
+                {productsSummary.totalQuantity}
               </div>
             </div>
           </div>
+
+          {/* Payment History - Larger and More Visible */}
+          {service.payments && service.payments.length > 0 && (
+            <div className="mt-6 pt-6 border-t">
+              <div className="flex items-center gap-2 mb-4">
+                <DollarSign className="h-5 w-5 text-blue-600" />
+                <h4 className="text-lg font-semibold text-gray-800">
+                  To'lov tarixi
+                </h4>
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-sm font-medium">
+                  {service.payments.length} ta to'lov
+                </span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {(() => {
+                  // Group payments by type and sum amounts
+                  const paymentSummary = {
+                    cash: 0,
+                    plastic: 0,
+                    terminal: 0,
+                    bank: 0,
+                    usd: 0,
+                    eur: 0,
+                  }
+
+                  service.payments.forEach((payment) => {
+                    if (payment.type in paymentSummary) {
+                      paymentSummary[
+                        payment.type as keyof typeof paymentSummary
+                      ] += payment.amount
+                    }
+                  })
+
+                  const paymentTypes = [
+                    { key: 'cash', label: 'Naqd', color: 'green' },
+                    { key: 'plastic', label: 'Plastik', color: 'blue' },
+                    { key: 'terminal', label: 'Terminal', color: 'purple' },
+                    { key: 'bank', label: 'Bank', color: 'orange' },
+                    { key: 'usd', label: 'Dollar', color: 'emerald' },
+                    { key: 'eur', label: 'Euro', color: 'indigo' },
+                  ]
+
+                  return paymentTypes.map(({ key, label, color }) => (
+                    <div
+                      key={key}
+                      className={`bg-${color}-50 p-3 rounded-lg border border-${color}-200`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div
+                            className={`text-xs font-medium text-${color}-700 mb-1`}
+                          >
+                            {label}
+                          </div>
+                          <div
+                            className={`text-sm font-bold text-${color}-900`}
+                          >
+                            {formatPrice(
+                              paymentSummary[key as keyof typeof paymentSummary]
+                            )}{' '}
+                            <span className="text-xs">so'm</span>
+                          </div>
+                        </div>
+                        <div className={`p-1 bg-white rounded-full`}>
+                          <DollarSign className={`h-3 w-3 text-${color}-600`} />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                })()}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

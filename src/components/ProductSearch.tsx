@@ -5,6 +5,7 @@ import { Search, Plus } from 'lucide-react'
 import { useGetAllSaleProductsQuery } from '@/store/product/product.api'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
 import { useDebounce } from '@/hooks/use-debounce'
+import { useGetBranch } from '@/hooks/use-get-branch'
 
 interface ProductSearchProps {
   onProductSelect: (product: ProductWarehouseItem) => void
@@ -15,6 +16,7 @@ export default function ProductSearch({
   onProductSelect,
   selectedProductIds,
 }: ProductSearchProps) {
+  const branch = useGetBranch()
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const debouncedSearchTerm = useDebounce(searchTerm, 300)
@@ -24,6 +26,7 @@ export default function ProductSearch({
       page: 1,
       limit: 10,
       search: debouncedSearchTerm,
+      branch: branch?._id,
     },
     {
       skip: !debouncedSearchTerm || debouncedSearchTerm.length < 2,

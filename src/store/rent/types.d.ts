@@ -152,6 +152,7 @@ export interface GetAllRentProductsRequest {
   search?: string
   page?: number
   limit?: number
+  branch?: string
 }
 
 export interface GetAllRentProductsResponse {

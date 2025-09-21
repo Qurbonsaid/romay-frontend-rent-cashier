@@ -30,6 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import ProductDetailsModal from '@/components/ProductDetailsModal'
 import {
   useGetRentQuery,
   useCompleteRentMutation,
@@ -1263,149 +1264,11 @@ export default function RentDetails() {
       </Dialog>
 
       {/* Product Details Modal */}
-      <Dialog open={isProductModalOpen} onOpenChange={closeProductModal}>
-        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Mahsulot ma'lumotlari</DialogTitle>
-          </DialogHeader>
-
-          {selectedProduct && (
-            <div className="space-y-4">
-              {/* Product Image and Basic Info */}
-              <div className="flex gap-4">
-                {/* Product Image */}
-                <div className="flex-shrink-0">
-                  {typeof selectedProduct.rent_product === 'object' &&
-                  selectedProduct.rent_product?.product?.images &&
-                  selectedProduct.rent_product.product.images.length > 0 ? (
-                    <img
-                      src={selectedProduct.rent_product.product.images[0]}
-                      alt={selectedProduct.rent_product.product.name}
-                      className="w-20 h-20 object-cover rounded-lg border"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 bg-gray-200 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">Rasm yo'q</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Product Name and Category */}
-                <div className="flex-1 space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {typeof selectedProduct.rent_product === 'object'
-                      ? selectedProduct.rent_product?.product?.name
-                      : "Noma'lum mahsulot"}
-                  </h3>
-                  {typeof selectedProduct.rent_product === 'object' &&
-                    selectedProduct.rent_product?.product?.category_id && (
-                      <p className="text-sm text-gray-600">
-                        {typeof selectedProduct.rent_product.product
-                          .category_id === 'object'
-                          ? selectedProduct.rent_product.product.category_id
-                              .name
-                          : selectedProduct.rent_product.product.category_id}
-                      </p>
-                    )}
-                </div>
-              </div>
-
-              {/* Key Information Grid */}
-              <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 font-medium">
-                    MIQDOR
-                  </div>
-                  <div className="text-xl font-bold text-blue-600">
-                    {selectedProduct.rent_product_count}
-                  </div>
-                  <div className="text-xs text-gray-400">dona</div>
-                </div>
-
-                <div className="text-center">
-                  <div className="text-xs text-gray-500 font-medium">
-                    KUNLIK NARX
-                  </div>
-                  <div className="text-xl font-bold text-green-600">
-                    {typeof selectedProduct.rent_product === 'object' &&
-                    selectedProduct.rent_product?.product_rent_price
-                      ? formatPrice(
-                          selectedProduct.rent_product.product_rent_price
-                        )
-                      : '0'}
-                  </div>
-                  <div className="text-xs text-gray-400">so'm</div>
-                </div>
-
-                <div className="text-center col-span-2 pt-2 border-t border-gray-200">
-                  <div className="text-xs text-gray-500 font-medium">
-                    JAMI NARX
-                  </div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {typeof selectedProduct.rent_product === 'object' &&
-                    selectedProduct.rent_product?.product_rent_price
-                      ? formatPrice(
-                          selectedProduct.rent_product.product_rent_price *
-                            selectedProduct.rent_product_count
-                        )
-                      : '0'}
-                  </div>
-                  <div className="text-xs text-gray-400">so'm</div>
-                </div>
-              </div>
-
-              {/* Additional Information */}
-              {typeof selectedProduct.rent_product === 'object' &&
-                selectedProduct.rent_product?.product_barcode && (
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <div className="text-sm font-medium text-blue-900">
-                      Barcode
-                    </div>
-                    <div className="font-mono text-blue-700">
-                      {selectedProduct.rent_product.product_barcode}
-                    </div>
-                  </div>
-                )}
-
-              {/* Available Stock */}
-              {typeof selectedProduct.rent_product === 'object' &&
-                selectedProduct.rent_product?.product_active_count && (
-                  <div className="bg-green-50 p-3 rounded-lg">
-                    <div className="text-sm font-medium text-green-900">
-                      Mavjud miqdor
-                    </div>
-                    <div className="text-green-700">
-                      {selectedProduct.rent_product.product_active_count} dona
-                    </div>
-                  </div>
-                )}
-
-              {/* Product Description */}
-              {typeof selectedProduct.rent_product === 'object' &&
-                selectedProduct.rent_product?.product?.description && (
-                  <div>
-                    <div className="text-sm font-medium text-gray-700 mb-1">
-                      Ta'rif
-                    </div>
-                    <p className="text-gray-600 text-sm">
-                      {selectedProduct.rent_product.product.description}
-                    </p>
-                  </div>
-                )}
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={closeProductModal}
-              className="w-full"
-            >
-              Yopish
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ProductDetailsModal
+        selectedProduct={selectedProduct}
+        isOpen={isProductModalOpen}
+        onClose={closeProductModal}
+      />
 
       {/* Update Delivery Date Modal */}
       <Dialog

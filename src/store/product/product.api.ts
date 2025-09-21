@@ -23,7 +23,7 @@ export const productApi = baseApi.injectEndpoints({
     // New endpoint for sale products
     getAllSaleProducts: builder.query<
       GetAllProductsResponse,
-      { page?: number; limit?: number; search?: string }
+      { page?: number; limit?: number; search?: string; branch?: string }
     >({
       query: (params) => ({
         url: '/product/sale-product/get-all',
@@ -35,7 +35,7 @@ export const productApi = baseApi.injectEndpoints({
     // New endpoint for rent products
     getAllRentProducts: builder.query<
       GetAllRentProductsResponse,
-      { page?: number; limit?: number; search?: string }
+      { page?: number; limit?: number; search?: string; branch?: string }
     >({
       query: (params) => ({
         url: '/product/rent-product/get-all',
