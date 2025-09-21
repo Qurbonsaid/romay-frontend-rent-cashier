@@ -94,8 +94,11 @@ export default function EditService() {
 
   // API hooks
   const { data: serviceData, isLoading: serviceLoading } = useGetServiceQuery(
-    id!,
-    { skip: !id }
+    {
+      id: id!,
+      branch: branch?._id,
+    },
+    { skip: !id || !branch }
   )
   const [updateService, { isLoading: isSubmitting }] =
     useUpdateServiceMutation()
@@ -111,6 +114,7 @@ export default function EditService() {
     useGetAllSaleProductsQuery({
       page: 1,
       limit: 1000, // Get all products for selection
+      branch: branch?._id,
     })
 
   const { data: clientsData, isLoading: clientsLoading } = useGetClientsQuery(

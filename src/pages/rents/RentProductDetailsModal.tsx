@@ -4,8 +4,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { useGetDetailedRentProductQuery } from '@/store/rent/rent.api'
-import { Package, Barcode, Tag, Info } from 'lucide-react'
 
 interface RentProductDetailsModalProps {
   productId: string | null
@@ -73,107 +73,104 @@ export default function RentProductDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-gray-900">
-            {product.product.name}
-          </DialogTitle>
+          <DialogTitle>Mahsulot ma'lumotlari</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Product Image */}
-          {product.product.images && product.product.images.length > 0 && (
-            <div className="flex justify-center">
-              <img
-                src={product.product.images[0]}
-                alt={product.product.name}
-                className="w-32 h-32 object-cover rounded-lg border border-gray-200"
-              />
-            </div>
-          )}
-
-          {/* Product Information - Arranged in two rows */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Mahsulot ma'lumotlari
-            </h3>
-
-            {/* First Row */}
-            <div className="grid grid-cols-2 gap-4 mb-3">
-              <div>
-                <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <Tag className="h-4 w-4" />
-                  Kategoriya
+          {/* Product Image and Basic Info */}
+          <div className="flex gap-4">
+            {/* Product Image */}
+            <div className="flex-shrink-0">
+              {product.product.images && product.product.images.length > 0 ? (
+                <img
+                  src={product.product.images[0]}
+                  alt={product.product.name}
+                  className="w-48 h-48 object-cover rounded-lg border border-gray-200"
+                />
+              ) : (
+                <div className="w-48 h-48 bg-gray-200 rounded-lg flex items-center justify-center border border-gray-200">
+                  <span className="text-gray-400 text-lg">Rasm yo'q</span>
                 </div>
-                <div className="text-sm text-gray-900">
-                  {typeof product.product.category_id === 'object'
-                    ? (
-                        product.product.category_id as {
-                          _id: string
-                          name: string
-                        }
-                      )?.name || 'Kategoriyasiz'
-                    : 'Kategoriyasiz'}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-700 flex items-center gap-1">
-                  <Barcode className="h-4 w-4" />
-                  Bar kod
-                </div>
-                <div className="text-sm text-gray-900 font-mono">
-                  {product.product.barcode || "Kod yo'q"}
-                </div>
-              </div>
+              )}
             </div>
 
-            {/* Second Row */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm font-medium text-gray-700">
-                  Ijara narxi
-                </div>
-                <div className="text-lg font-bold text-green-600">
-                  {product.product_rent_price > 0
-                    ? `${formatPrice(product.product_rent_price)} so'm`
-                    : 'Belgilanmagan'}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-gray-700">
-                  Mavjud miqdori
-                </div>
-                <div className="text-lg font-semibold text-blue-600">
-                  {product.product_active_count} dona
-                </div>
-              </div>
+            {/* Product Name and Category */}
+            <div className="flex-1 space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {product.product.name}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {typeof product.product.category_id === 'object'
+                  ? (
+                      product.product.category_id as {
+                        _id: string
+                        name: string
+                      }
+                    )?.name
+                  : 'Kategoriyasiz'}
+              </p>
             </div>
           </div>
 
-          {/* Description */}
-          {product.product.description && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1 mb-2">
-                <Info className="h-4 w-4" />
-                Tavsif
-              </h4>
-              <div className="text-sm text-gray-900">
-                {product.product.description}
+          {/* Key Information Grid */}
+          <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-medium">
+                MAVJUD MIQDOR
               </div>
+              <div className="text-xl font-bold text-blue-600">
+                {product.product_active_count}
+              </div>
+              <div className="text-xs text-gray-400">dona</div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-medium">
+                KUNLIK NARX
+              </div>
+              <div className="text-xl font-bold text-green-600">
+                {product.product_rent_price > 0
+                  ? formatPrice(product.product_rent_price)
+                  : '0'}
+              </div>
+              <div className="text-xs text-gray-400">so'm</div>
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          {product.product.barcode && (
+            <div className="bg-blue-50 p-3 rounded-lg">
+              <div className="text-sm font-medium text-blue-900">Barcode</div>
+              <div className="font-mono text-blue-700">
+                {product.product.barcode}
+              </div>
+            </div>
+          )}
+
+          {/* Product Description */}
+          {product.product.description && (
+            <div>
+              <div className="text-sm font-medium text-gray-700 mb-1">
+                Ta'rif
+              </div>
+              <p className="text-gray-600 text-sm">
+                {product.product.description}
+              </p>
             </div>
           )}
 
           {/* Product Attributes */}
           {product.product.attributes &&
             product.product.attributes.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-3">
+              <div>
+                <div className="text-sm font-medium text-gray-700 mb-2">
                   Mahsulot xususiyatlari
-                </h4>
-                <div className="grid grid-cols-2 gap-3">
+                </div>
+                <div className="grid grid-cols-2 gap-2">
                   {product.product.attributes.map((attribute) => (
-                    <div key={attribute._id} className="bg-gray-50 rounded p-3">
+                    <div key={attribute._id} className="bg-gray-50 rounded p-2">
                       <div className="text-xs font-medium text-gray-600">
                         {attribute.key}
                       </div>
@@ -194,6 +191,12 @@ export default function RentProductDetailsModal({
               {product.product.status === 'active' ? 'Faol' : 'Nofaol'}
             </span>
           </div>
+        </div>
+
+        <div className="pt-4">
+          <Button variant="outline" onClick={onClose} className="w-full">
+            Yopish
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

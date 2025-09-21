@@ -24,7 +24,7 @@ export const rentApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['rents'],
+      invalidatesTags: ['rents', 'products', 'rentProducts'],
     }),
 
     updateRent: builder.mutation<
@@ -36,7 +36,7 @@ export const rentApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['rents'],
+      invalidatesTags: ['rents', 'products', 'rentProducts'],
     }),
 
     updateDeliveryDate: builder.mutation<
@@ -60,7 +60,7 @@ export const rentApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['rents'],
+      invalidatesTags: ['rents', 'products', 'rentProducts'],
     }),
 
     cancelRent: builder.mutation<GenericResponse, string>({
@@ -68,7 +68,7 @@ export const rentApi = baseApi.injectEndpoints({
         url: `/rent/cancel/${id}`,
         method: 'PATCH',
       }),
-      invalidatesTags: ['rents'],
+      invalidatesTags: ['rents', 'products', 'rentProducts'],
     }),
 
     getAllRents: builder.query<GetAllRentsResponse, GetAllRentsRequest>({
@@ -103,7 +103,7 @@ export const rentApi = baseApi.injectEndpoints({
         url: `/rent/delete/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['rents'],
+      invalidatesTags: ['rents', 'products', 'rentProducts'],
     }),
 
     // Rent Product operations
@@ -111,13 +111,14 @@ export const rentApi = baseApi.injectEndpoints({
       GetAllRentProductsResponse,
       GetAllRentProductsRequest
     >({
-      query: ({ search, page, limit } = {}) => ({
+      query: ({ search, page, limit, branch } = {}) => ({
         url: '/product/rent-product/get-all',
         method: 'GET',
         params: {
           ...(search && { search }),
           ...(page && { page }),
           ...(limit && { limit }),
+          ...(branch && { branch }),
         },
       }),
       providesTags: ['rentProducts'],

@@ -15,6 +15,7 @@ import {
 } from '@/store/rent/rent.api'
 import type { RentStatus } from '@/store/rent/types'
 import { useGetRole } from '@/hooks/use-get-role'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 import { useNavigate } from 'react-router-dom'
 import { Edit, Trash2 } from 'lucide-react'
@@ -61,6 +62,7 @@ const translateApiError = (errorMsg: string): string => {
 export default function RentUsersTable() {
   const navigate = useNavigate()
   const userRole = useGetRole()
+  const branch = useGetBranch()
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [selectedStatus, setSelectedStatus] = useState<RentStatus | '' | 'all'>(
@@ -99,10 +101,11 @@ export default function RentUsersTable() {
       status:
         selectedStatus === 'all' ? undefined : selectedStatus || undefined,
       search: searchTerm || undefined,
+      branch: branch?._id,
       page: currentPage,
       limit: limit,
     },
-    { skip: !canViewRents }
+    { skip: !canViewRents || !branch }
   )
 
   // Navigate to dashboard if no permission
@@ -125,7 +128,18 @@ export default function RentUsersTable() {
     setCurrentPage(1)
   }
 
-  const handleEditClick = (rentId: string) => {
+  const handleEditClick = (rentId: string, createdDate: string) => {
+    // Check if the rent was created today
+    const today = new Date()
+    const created = new Date(createdDate)
+    today.setHours(0, 0, 0, 0)
+    created.setHours(0, 0, 0, 0)
+
+    if (created.getTime() !== today.getTime()) {
+      toast.error('Faqat bugun yaratilgan ijaralarni tahrirlash mumkin!')
+      return
+    }
+
     navigate(`/rents/edit/${rentId}`)
   }
 
@@ -333,7 +347,7 @@ export default function RentUsersTable() {
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          handleEditClick(rent._id)
+                          handleEditClick(rent._id, rent.created_at)
                         }}
                         disabled={
                           rent.status === 'COMPLETED' ||

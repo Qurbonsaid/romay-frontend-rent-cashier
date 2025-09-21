@@ -102,6 +102,7 @@ export default function AddService() {
     useGetAllSaleProductsQuery({
       page: 1,
       limit: 1000, // Get all products for selection
+      branch: branch?._id,
     })
 
   const { data: clientsData, isLoading: clientsLoading } = useGetClientsQuery(

@@ -18,7 +18,7 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['services'],
+      invalidatesTags: ['services', 'products'],
     }),
     getAllServices: builder.query<
       GetAllServicesResponse,
@@ -38,10 +38,16 @@ export const serviceApi = baseApi.injectEndpoints({
       }),
       providesTags: ['services'],
     }),
-    getService: builder.query<GetServiceResponse, string>({
-      query: (id) => ({
+    getService: builder.query<
+      GetServiceResponse,
+      { id: string; branch?: string }
+    >({
+      query: ({ id, branch }) => ({
         url: `/service/get/${id}`,
         method: 'GET',
+        params: {
+          ...(branch && { branch }),
+        },
       }),
       providesTags: ['services'],
     }),
@@ -54,21 +60,21 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['services'],
+      invalidatesTags: ['services', 'products'],
     }),
     deleteService: builder.mutation<DeleteServiceResponse, string>({
       query: (id) => ({
         url: `/service/delete/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['services'],
+      invalidatesTags: ['services', 'products'],
     }),
     cancelService: builder.mutation<UpdateServiceResponse, string>({
       query: (id) => ({
         url: `/service/cancel/${id}`,
         method: 'PUT',
       }),
-      invalidatesTags: ['services'],
+      invalidatesTags: ['services', 'products'],
     }),
     completeService: builder.mutation<
       UpdateServiceResponse,
@@ -79,7 +85,7 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: { payments },
       }),
-      invalidatesTags: ['services'],
+      invalidatesTags: ['services', 'products'],
     }),
   }),
 })

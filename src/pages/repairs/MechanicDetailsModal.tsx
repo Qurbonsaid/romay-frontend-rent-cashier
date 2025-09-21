@@ -5,11 +5,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import { useGetAllMechanicsQuery } from '@/store/mechanic/mechanic.api'
 import type { Mechanic } from '@/store/mechanic/types.d'
-import { User, Phone, Wrench, Calendar, ClipboardList } from 'lucide-react'
+import { User, Wrench } from 'lucide-react'
+import { useGetBranch } from '@/hooks/use-get-branch'
 
 type MechanicDetailsModalProps = {
   mechanicId: string | null
@@ -24,10 +23,16 @@ export default function MechanicDetailsModal({
   onClose,
   mechanicFromList = null,
 }: MechanicDetailsModalProps) {
+  const branch = useGetBranch()
+
   // If we already have mechanic data (from list) we can show it immediately
   const { data: mechanicsResponse } = useGetAllMechanicsQuery(
-    { page: 1, limit: 100 },
-    { skip: !!mechanicFromList }
+    {
+      page: 1,
+      limit: 100,
+      branch_id: branch?._id,
+    },
+    { skip: !!mechanicFromList || !branch }
   )
 
   let mechanic: Mechanic | null = mechanicFromList
@@ -63,92 +68,80 @@ export default function MechanicDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-        <DialogHeader className="pb-4">
-          <DialogTitle className="text-xl font-semibold flex items-center gap-2">
-            <User className="h-5 w-5 text-blue-600" />
-            Usta ma'lumotlari
-          </DialogTitle>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Usta ma'lumotlari</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Main Info Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {mechanic.fullName}
-                  </h3>
-                  <Badge
-                    variant={getWorkTypeBadgeVariant(mechanic.work_type)}
-                    className="text-xs"
-                  >
-                    <Wrench className="h-3 w-3 mr-1" />
-                    {getWorkTypeLabel(mechanic.work_type)}
-                  </Badge>
-                </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-500">Xizmatlar soni</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {mechanic.service_count}
-                  </div>
-                </div>
+        <div className="space-y-4">
+          {/* Basic Info */}
+          <div className="flex gap-4">
+            {/* Avatar placeholder */}
+            <div className="flex-shrink-0">
+              <div className="w-48 h-48 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center border border-gray-200">
+                <User className="h-20 w-20 text-blue-500" />
               </div>
+            </div>
 
-              <Separator className="my-4" />
+            {/* Name and Work Type */}
+            <div className="flex-1 space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {mechanic.fullName}
+              </h3>
+              <Badge
+                variant={getWorkTypeBadgeVariant(mechanic.work_type)}
+                className="text-sm"
+              >
+                <Wrench className="h-3 w-3 mr-1" />
+                {getWorkTypeLabel(mechanic.work_type)}
+              </Badge>
+            </div>
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-full">
-                    <Phone className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">Telefon raqam</div>
-                    <div className="font-medium">{mechanic.phone}</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-full">
-                    <Calendar className="h-4 w-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <div className="text-sm text-gray-500">
-                      Ishga qabul qilingan
-                    </div>
-                    <div className="font-medium">
-                      {formatDate(mechanic.created_at)}
-                    </div>
-                  </div>
-                </div>
+          {/* Key Information Grid */}
+          <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-lg">
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-medium">TELEFON</div>
+              <div className="text-lg font-bold text-green-600">
+                {mechanic.phone}
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Additional Info */}
-          <Card>
-            <CardContent className="pt-6">
-              <h4 className="font-semibold mb-4 flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-gray-600" />
-                Qo'shimcha ma'lumotlar
-              </h4>
-
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Oxirgi yangilanish:</span>
-                  <span>{formatDate(mechanic.updated_at)}</span>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Holat:</span>
-                  <Badge variant="default" className="text-xs">
-                    Faol
-                  </Badge>
-                </div>
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-medium">
+                XIZMATLAR SONI
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-lg font-bold text-blue-600">
+                {mechanic.service_count}
+              </div>
+            </div>
+
+            <div className="text-center col-span-2 pt-2 border-t border-gray-200">
+              <div className="text-xs text-gray-500 font-medium">
+                ISHGA QABUL QILINGAN
+              </div>
+              <div className="text-lg font-bold text-purple-600">
+                {formatDate(mechanic.created_at)}
+              </div>
+            </div>
+          </div>
+
+          {/* Additional Information */}
+          <div className="bg-yellow-50 p-3 rounded-lg">
+            <div className="text-sm font-medium text-yellow-900">
+              Oxirgi yangilanish
+            </div>
+            <div className="text-yellow-700">
+              {formatDate(mechanic.updated_at)}
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className="flex justify-center">
+            <span className="inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">
+              Faol usta
+            </span>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

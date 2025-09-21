@@ -19,6 +19,7 @@ import {
 import { useGetAllMechanicsQuery } from '@/store/mechanic/mechanic.api'
 import type { ServiceStatus } from '@/store/service/types'
 import { useGetRole } from '@/hooks/use-get-role'
+import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 import AddMechanicDialog from './AddMechanicDialog'
 import MechanicDetailsModal from './MechanicDetailsModal'
@@ -41,6 +42,7 @@ function MechanicsTable({
 }) {
   const navigate = useNavigate()
   const userRole = useGetRole()
+  const branch = useGetBranch()
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
   const [searchTerm, setSearchTerm] = useState('')
@@ -83,11 +85,12 @@ function MechanicsTable({
         workTypeFilter !== 'all'
           ? (workTypeFilter as 'SERVICE' | 'FIELD_SERVICE')
           : undefined,
+      branch_id: branch?._id,
       page: currentPage,
       limit: limit,
     },
     {
-      skip: !canViewMechanics,
+      skip: !canViewMechanics || !branch,
     }
   )
 
@@ -241,6 +244,7 @@ function ServicesTable({
 }) {
   const navigate = useNavigate()
   const userRole = useGetRole()
+  const branch = useGetBranch()
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatus | ''>('')
   const [currentPage, setCurrentPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -275,11 +279,12 @@ function ServicesTable({
     {
       search: searchTerm || undefined,
       status: (selectedStatus.trim() as ServiceStatus) || undefined,
+      branch: branch?._id,
       page: currentPage,
       limit: limit,
     },
     {
-      skip: !canViewServices,
+      skip: !canViewServices || !branch,
     }
   )
 
@@ -469,6 +474,21 @@ function ServicesTable({
                           onEditClick(service._id)
                         }}
                         className="h-8 w-8 p-0"
+                        disabled={
+                          service.status === 'COMPLETED' ||
+                          service.status === 'CANCELLED' ||
+                          new Date(service.created_at).toDateString() !==
+                            new Date().toDateString()
+                        }
+                        title={
+                          service.status === 'COMPLETED' ||
+                          service.status === 'CANCELLED'
+                            ? 'Tugallangan yoki bekor qilingan xizmatni tahrirlash mumkin emas'
+                            : new Date(service.created_at).toDateString() !==
+                                new Date().toDateString()
+                              ? 'Faqat bugungi xizmatlarni tahrirlash mumkin'
+                              : ''
+                        }
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -480,6 +500,21 @@ function ServicesTable({
                           onDeleteClick(service._id)
                         }}
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                        disabled={
+                          service.status === 'COMPLETED' ||
+                          service.status === 'CANCELLED' ||
+                          new Date(service.created_at).toDateString() !==
+                            new Date().toDateString()
+                        }
+                        title={
+                          service.status === 'COMPLETED' ||
+                          service.status === 'CANCELLED'
+                            ? "Tugallangan yoki bekor qilingan xizmatni o'chirish mumkin emas"
+                            : new Date(service.created_at).toDateString() !==
+                                new Date().toDateString()
+                              ? "Faqat bugungi xizmatlarni o'chirish mumkin"
+                              : ''
+                        }
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

@@ -116,6 +116,7 @@ export default function EditRent() {
     useGetAllRentProductsQuery({
       page: 1,
       limit: 1000,
+      branch: branch?._id,
     })
 
   const { data: clientsData, isLoading: clientsLoading } = useGetClientsQuery(

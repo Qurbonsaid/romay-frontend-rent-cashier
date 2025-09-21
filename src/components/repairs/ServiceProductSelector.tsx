@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Badge } from '@/components/ui/badge'
 import { Minus, Plus, X } from 'lucide-react'
 import ProductSearch from '@/components/ProductSearch'
@@ -106,17 +106,14 @@ export function ServiceProductSelector({
                       <Minus className="h-4 w-4" />
                     </Button>
 
-                    <Input
-                      type="number"
+                    <NumberInput
                       value={item.quantity}
-                      onChange={(e) =>
-                        onQuantityChange(
-                          item.product._id,
-                          Number(e.target.value)
-                        )
+                      onChange={(value) =>
+                        onQuantityChange(item.product._id, value)
                       }
                       className="w-16 text-center"
-                      min="1"
+                      placeholder="1"
+                      allowZero={false}
                     />
 
                     <Button

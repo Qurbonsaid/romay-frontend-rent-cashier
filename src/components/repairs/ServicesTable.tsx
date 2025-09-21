@@ -86,7 +86,18 @@ export function ServicesTable() {
     setCurrentPage(1)
   }
 
-  const handleEditClick = (serviceId: string) => {
+  const handleEditClick = (serviceId: string, createdDate: string) => {
+    // Check if the service was created today
+    const today = new Date()
+    const created = new Date(createdDate)
+    today.setHours(0, 0, 0, 0)
+    created.setHours(0, 0, 0, 0)
+
+    if (created.getTime() !== today.getTime()) {
+      toast.error('Faqat bugun yaratilgan xizmatlarni tahrirlash mumkin!')
+      return
+    }
+
     navigate(`/repairs/edit-service/${serviceId}`)
   }
 
@@ -282,7 +293,12 @@ export function ServicesTable() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleEditClick(service._id)}
+                              onClick={() =>
+                                handleEditClick(
+                                  service._id,
+                                  service.received_date
+                                )
+                              }
                               className="text-blue-600 hover:text-blue-700"
                             >
                               <Edit className="h-4 w-4" />
