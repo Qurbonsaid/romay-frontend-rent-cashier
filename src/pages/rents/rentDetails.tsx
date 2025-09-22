@@ -95,7 +95,7 @@ const translateApiError = (errorMsg: string): string => {
 
 // Calculate days overdue for a rental
 const calculateDaysOverdue = (deliveryDate: string, status: string): number => {
-  if (status === 'COMPLETED') return 0
+  if (status !== 'IN_PROGRESS') return 0
 
   const today = new Date()
   const returnDate = new Date(deliveryDate)
@@ -643,9 +643,6 @@ export default function RentDetails() {
                         <span className="text-sm font-medium text-red-600">
                           {daysOverdue} kun kechiktirilgan
                         </span>
-                        <div className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full">
-                          KECHIKISH
-                        </div>
                       </div>
                     )
                   }
@@ -1344,14 +1341,14 @@ export default function RentDetails() {
                     disabled={(date) => {
                       const today = new Date()
                       today.setHours(0, 0, 0, 0)
-                      return date < today
+                      return date <= today
                     }}
                     initialFocus
                   />
                 </PopoverContent>
               </Popover>
               <div className="text-xs text-gray-500">
-                Yangi sana bugungi kundan kech bo'lishi kerak
+                Yangi sana ertangi kundan boshlab bo'lishi kerak
               </div>
             </div>
 

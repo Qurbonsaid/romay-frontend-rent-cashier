@@ -306,6 +306,15 @@ function ServicesTable({
     setCurrentPage(1)
   }
 
+  const isOverdue = (deliveryDate: string, status: string): boolean => {
+    if (status !== 'IN_PROGRESS') return false
+    const today = new Date()
+    const delivery = new Date(deliveryDate)
+    today.setHours(0, 0, 0, 0)
+    delivery.setHours(0, 0, 0, 0)
+    return delivery < today
+  }
+
   // Show permission error if user doesn't have access
   if (!canViewServices) {
     return (
@@ -460,8 +469,17 @@ function ServicesTable({
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
-                    <div className="text-sm text-[#18181B]">
+                    <div
+                      className={`text-sm ${
+                        isOverdue(service.delivery_date, service.status)
+                          ? 'text-red-600 font-semibold'
+                          : 'text-[#18181B]'
+                      }`}
+                    >
                       {formatDate(service.delivery_date)}
+                      {isOverdue(service.delivery_date, service.status) && (
+                        <span className="ml-1 text-red-500">⚠️</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">

@@ -263,6 +263,21 @@ export default function RepairDetails() {
     })
   }
 
+  // Calculate days overdue for a rental
+  const calculateDaysOverdue = (
+    deliveryDate: string,
+    status: string
+  ): number => {
+    if (status !== 'IN_PROGRESS') return 0
+
+    const today = new Date()
+    const returnDate = new Date(deliveryDate)
+    const timeDiff = today.getTime() - returnDate.getTime()
+    const daysDiff = Math.floor(timeDiff / (1000 * 3600 * 24))
+
+    return daysDiff > 0 ? daysDiff : 0
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'IN_PROGRESS':
@@ -449,9 +464,26 @@ export default function RepairDetails() {
               </div>
               <div>
                 <div className="text-sm text-gray-500">Topshirish sanasi</div>
-                <div className="font-medium">
+                <div className={`font-medium`}>
                   {formatDate(service.delivery_date)}
                 </div>
+                {(() => {
+                  const daysOverdue = calculateDaysOverdue(
+                    service.delivery_date,
+                    service.status
+                  )
+                  if (daysOverdue > 0) {
+                    return (
+                      <div className="flex items-start gap-2 mt-1">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                        <span className="text-sm font-medium text-red-600">
+                          {daysOverdue} kun kechiktirilgan
+                        </span>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
               </div>
             </div>
           </div>

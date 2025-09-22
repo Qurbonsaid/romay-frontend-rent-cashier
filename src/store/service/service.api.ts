@@ -85,7 +85,7 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: { payments },
       }),
-      invalidatesTags: ['services', 'products'],
+      invalidatesTags: ['services', 'products', 'balance'],
     }),
   }),
 })

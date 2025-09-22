@@ -60,7 +60,7 @@ export const rentApi = baseApi.injectEndpoints({
         method: 'PATCH',
         body: data,
       }),
-      invalidatesTags: ['rents', 'products', 'rentProducts'],
+      invalidatesTags: ['rents', 'products', 'rentProducts', 'balance'],
     }),
 
     cancelRent: builder.mutation<GenericResponse, string>({
