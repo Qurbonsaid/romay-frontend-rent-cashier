@@ -325,7 +325,7 @@ export function ServicesTable() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <div className="text-gray-500">
                       <p className="text-lg">Xizmatlar topilmadi</p>
                       <p className="text-sm">

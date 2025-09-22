@@ -45,7 +45,7 @@ export const branchApi = baseApi.injectEndpoints({
         url: `/branch/get-one/${id}`,
         method: 'GET',
       }),
-      providesTags: ['branches'],
+      providesTags: ['branches', 'balance'],
     }),
     deleteBranch: builder.mutation<void, string>({
       query: (id) => ({
