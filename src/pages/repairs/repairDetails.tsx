@@ -439,7 +439,7 @@ export default function RepairDetails() {
                 <Package className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <div className="text-sm text-gray-500">Mahsulotlar jami</div>
+                <div className="text-sm text-gray-500">Xizmat narxi</div>
                 <div className="font-medium">
                   {formatPrice(service.totalAmount)}
                 </div>
@@ -644,6 +644,9 @@ export default function RepairDetails() {
                           Mahsulot
                         </TableHead>
                         <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Barcode
+                        </TableHead>
+                        <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Kategoriya
                         </TableHead>
                         <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -723,6 +726,16 @@ export default function RepairDetails() {
                                   </div>
                                 </div>
                               </div>
+                            </TableCell>
+
+                            {/* Barcode Column */}
+                            <TableCell className="px-4 py-4">
+                              <span className="font-mono text-sm bg-blue-50 px-2 py-1 rounded border">
+                                {typeof productItem.product === 'object' &&
+                                productItem.product?.barcode
+                                  ? productItem.product.barcode
+                                  : 'N/A'}
+                              </span>
                             </TableCell>
 
                             {/* Category Column */}

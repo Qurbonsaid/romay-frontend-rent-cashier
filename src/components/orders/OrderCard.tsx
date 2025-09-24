@@ -288,6 +288,9 @@ export function OrderCard({
                             Mahsulot
                           </TableHead>
                           <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Barcode
+                          </TableHead>
+                          <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Kategoriya
                           </TableHead>
                           <TableHead className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -354,6 +357,14 @@ export function OrderCard({
                                     </div>
                                   </div>
                                 </div>
+                              </TableCell>
+
+                              {/* Barcode Column */}
+                              <TableCell className="px-4 py-2 text-gray-600 text-sm font-mono">
+                                {typeof rentProduct.rent_product === 'object' &&
+                                rentProduct.rent_product?.product?.barcode
+                                  ? rentProduct.rent_product.product.barcode
+                                  : '—'}
                               </TableCell>
 
                               {/* Category Column */}

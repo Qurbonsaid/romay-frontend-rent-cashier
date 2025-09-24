@@ -24,6 +24,7 @@ import { CheckRole } from '@/utils/checkRole'
 import AddMechanicDialog from './AddMechanicDialog'
 import MechanicDetailsModal from './MechanicDetailsModal'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal'
+import { toast } from 'sonner'
 
 // Utility functions
 const formatPrice = (price: number): string => {
@@ -239,8 +240,8 @@ function ServicesTable({
   onEditClick,
   onDeleteClick,
 }: {
-  onEditClick: (serviceId: string) => void
-  onDeleteClick: (serviceId: string) => void
+  onEditClick: (serviceId: string, createdDate: string) => void
+  onDeleteClick: (serviceId: string, createdDate: string) => void
 }) {
   const navigate = useNavigate()
   const userRole = useGetRole()
@@ -313,6 +314,15 @@ function ServicesTable({
     today.setHours(0, 0, 0, 0)
     delivery.setHours(0, 0, 0, 0)
     return delivery < today
+  }
+
+  const isToday = (deliveryDate: string, status: string): boolean => {
+    if (status !== 'IN_PROGRESS') return false
+    const today = new Date()
+    const delivery = new Date(deliveryDate)
+    today.setHours(0, 0, 0, 0)
+    delivery.setHours(0, 0, 0, 0)
+    return delivery.getTime() === today.getTime()
   }
 
   // Show permission error if user doesn't have access
@@ -473,13 +483,12 @@ function ServicesTable({
                       className={`text-sm ${
                         isOverdue(service.delivery_date, service.status)
                           ? 'text-red-600 font-semibold'
-                          : 'text-[#18181B]'
+                          : isToday(service.delivery_date, service.status)
+                            ? 'text-green-600 font-semibold'
+                            : 'text-[#18181B]'
                       }`}
                     >
                       {formatDate(service.delivery_date)}
-                      {isOverdue(service.delivery_date, service.status) && (
-                        <span className="ml-1 text-red-500">⚠️</span>
-                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
@@ -489,23 +498,23 @@ function ServicesTable({
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          onEditClick(service._id)
+                          onEditClick(service._id, service.created_at)
                         }}
-                        className="h-8 w-8 p-0"
+                        className={`h-8 w-8 p-0 ${
+                          service.status === 'COMPLETED' ||
+                          service.status === 'CANCELLED'
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
                         disabled={
                           service.status === 'COMPLETED' ||
-                          service.status === 'CANCELLED' ||
-                          new Date(service.created_at).toDateString() !==
-                            new Date().toDateString()
+                          service.status === 'CANCELLED'
                         }
                         title={
                           service.status === 'COMPLETED' ||
                           service.status === 'CANCELLED'
                             ? 'Tugallangan yoki bekor qilingan xizmatni tahrirlash mumkin emas'
-                            : new Date(service.created_at).toDateString() !==
-                                new Date().toDateString()
-                              ? 'Faqat bugungi xizmatlarni tahrirlash mumkin'
-                              : ''
+                            : 'Xizmatni tahrirlash'
                         }
                       >
                         <Edit className="h-4 w-4" />
@@ -515,23 +524,23 @@ function ServicesTable({
                         size="sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          onDeleteClick(service._id)
+                          onDeleteClick(service._id, service.created_at)
                         }}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-800"
+                        className={`h-8 w-8 p-0 text-red-600 hover:text-red-800 ${
+                          service.status === 'COMPLETED' ||
+                          service.status === 'CANCELLED'
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
                         disabled={
                           service.status === 'COMPLETED' ||
-                          service.status === 'CANCELLED' ||
-                          new Date(service.created_at).toDateString() !==
-                            new Date().toDateString()
+                          service.status === 'CANCELLED'
                         }
                         title={
                           service.status === 'COMPLETED' ||
                           service.status === 'CANCELLED'
                             ? "Tugallangan yoki bekor qilingan xizmatni o'chirish mumkin emas"
-                            : new Date(service.created_at).toDateString() !==
-                                new Date().toDateString()
-                              ? "Faqat bugungi xizmatlarni o'chirish mumkin"
-                              : ''
+                            : "Xizmatni o'chirish"
                         }
                       >
                         <Trash2 className="h-4 w-4" />
@@ -569,7 +578,18 @@ export default function Repairs() {
 
   const [deleteService, { isLoading: isDeleting }] = useDeleteServiceMutation()
 
-  const handleDeleteClick = (serviceId: string) => {
+  const handleDeleteClick = (serviceId: string, createdDate: string) => {
+    // Check if the service was created today
+    const today = new Date()
+    const created = new Date(createdDate)
+    today.setHours(0, 0, 0, 0)
+    created.setHours(0, 0, 0, 0)
+
+    if (created.getTime() !== today.getTime()) {
+      toast.error("Faqat bugun yaratilgan xizmatlarni o'chirish mumkin!")
+      return
+    }
+
     setDeleteServiceId(serviceId)
     setIsDeleteModalOpen(true)
   }
@@ -593,7 +613,18 @@ export default function Repairs() {
     setDeleteServiceId(null)
   }
 
-  const handleEditClick = (serviceId: string) => {
+  const handleEditClick = (serviceId: string, createdDate: string) => {
+    // Check if the service was created today
+    const today = new Date()
+    const created = new Date(createdDate)
+    today.setHours(0, 0, 0, 0)
+    created.setHours(0, 0, 0, 0)
+
+    if (created.getTime() !== today.getTime()) {
+      toast.error('Faqat bugun yaratilgan xizmatlarni tahrirlash mumkin!')
+      return
+    }
+
     navigate(`/edit-service/${serviceId}`)
   }
 

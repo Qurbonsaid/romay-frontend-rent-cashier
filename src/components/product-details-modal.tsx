@@ -11,10 +11,41 @@ import type {
   RentProductWarehouseItem,
 } from '@/store/product/types'
 
+// Service product type from repair details API
+interface ServiceProduct {
+  product: {
+    _id: string
+    name: string
+    description: string
+    category_id: {
+      _id: string
+      name: string
+      description: string
+      created_at: string
+      updated_at: string
+    }
+    price: number
+    status: string
+    currency: string
+    images: string[]
+    barcode: string
+    attributes: any[]
+    from_create: string
+    created_at: string
+    updated_at: string
+  }
+  product_count: number
+  _id: string
+}
+
 type ProductDetailsModalProps = {
   isOpen: boolean
   onClose: () => void
-  product: ProductWarehouseItem | RentProductWarehouseItem | null
+  product:
+    | ProductWarehouseItem
+    | RentProductWarehouseItem
+    | ServiceProduct
+    | null
 }
 
 const formatPrice = (price?: string | number, currency?: string) => {
@@ -29,7 +60,7 @@ const formatPrice = (price?: string | number, currency?: string) => {
 }
 
 const getProductName = (
-  product: ProductWarehouseItem | RentProductWarehouseItem
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
 ): string => {
   if (
     typeof product.product === 'object' &&
@@ -42,7 +73,7 @@ const getProductName = (
 }
 
 const getProductCount = (
-  product: ProductWarehouseItem | RentProductWarehouseItem
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
 ): number => {
   if ('product_count' in product) {
     return product.product_count
@@ -54,7 +85,7 @@ const getProductCount = (
 }
 
 const getProductPrice = (
-  product: ProductWarehouseItem | RentProductWarehouseItem
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
 ): number => {
   if ('product_rent_price' in product) {
     return product.product_rent_price
@@ -70,16 +101,91 @@ const getProductPrice = (
 }
 
 const getProductCurrency = (
-  product: ProductWarehouseItem | RentProductWarehouseItem
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
 ): string => {
   if (
     typeof product.product === 'object' &&
     product.product &&
     'currency' in product.product
   ) {
-    return product.product.currency || 'USD'
+    return product.product.currency || 'UZS'
   }
-  return 'USD'
+  return 'UZS'
+}
+
+const getProductCategory = (
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
+): string => {
+  // For ServiceProduct
+  if (
+    typeof product.product === 'object' &&
+    product.product &&
+    'category_id' in product.product &&
+    typeof product.product.category_id === 'object' &&
+    product.product.category_id &&
+    'name' in product.product.category_id
+  ) {
+    return product.product.category_id.name
+  }
+
+  // For other product types
+  if (
+    typeof product.product === 'object' &&
+    product.product &&
+    'category' in product.product
+  ) {
+    return String(product.product.category)
+  }
+
+  return "Noma'lum"
+}
+
+const getProductCreatedAt = (
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
+): string => {
+  // For ServiceProduct
+  if (
+    typeof product.product === 'object' &&
+    product.product &&
+    'created_at' in product.product
+  ) {
+    return product.product.created_at
+  }
+
+  // For other product types
+  if ('created_at' in product) {
+    return product.created_at
+  }
+
+  return ''
+}
+
+const getProductBarcode = (
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
+): string => {
+  if (
+    typeof product.product === 'object' &&
+    product.product &&
+    'barcode' in product.product
+  ) {
+    return product.product.barcode
+  }
+
+  return ''
+}
+
+const getProductDescription = (
+  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
+): string => {
+  if (
+    typeof product.product === 'object' &&
+    product.product &&
+    'description' in product.product
+  ) {
+    return product.product.description
+  }
+
+  return ''
 }
 
 export default function ProductDetailsModal({
@@ -93,6 +199,10 @@ export default function ProductDetailsModal({
   const productCount = getProductCount(product)
   const productPrice = getProductPrice(product)
   const productCurrency = getProductCurrency(product)
+  const productCategory = getProductCategory(product)
+  const productCreatedAt = getProductCreatedAt(product)
+  const productBarcode = getProductBarcode(product)
+  const productDescription = getProductDescription(product)
   const isAvailable = productCount > 0
   const isRentProduct = 'product_rent_price' in product
 
@@ -164,45 +274,66 @@ export default function ProductDetailsModal({
               </div>
             </div>
 
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-medium">JAMI NARX</div>
+              <div className="text-lg font-bold text-orange-600">
+                {formatPrice(productPrice * productCount, productCurrency)}
+              </div>
+            </div>
+
+            <div className="text-center">
+              <div className="text-xs text-gray-500 font-medium">
+                KATEGORIYA
+              </div>
+              <div className="text-lg font-bold text-indigo-600">
+                {productCategory}
+              </div>
+            </div>
+
             <div className="text-center col-span-2 pt-2 border-t border-gray-200">
               <div className="text-xs text-gray-500 font-medium">
                 YARATILGAN SANA
               </div>
               <div className="text-lg font-bold text-purple-600">
-                {product.created_at
-                  ? new Date(product.created_at).toLocaleDateString('en-GB')
+                {productCreatedAt
+                  ? new Date(productCreatedAt).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })
                   : "Noma'lum"}
               </div>
             </div>
           </div>
 
           {/* Product Details */}
-          {typeof product.product === 'object' && product.product && (
-            <div className="bg-blue-50 p-3 rounded-lg">
-              <div className="text-sm font-medium text-blue-900 mb-2">
-                Qo'shimcha ma'lumotlar
-              </div>
-              <div className="space-y-1 text-blue-700">
-                {(() => {
-                  const prod = product.product as any
-                  return (
-                    <>
-                      {prod?.category && (
-                        <div className="text-sm">
-                          Kategoriya: {String(prod.category)}
-                        </div>
-                      )}
-                      {prod?.description && (
-                        <div className="text-sm">
-                          Tavsif: {String(prod.description)}
-                        </div>
-                      )}
-                    </>
-                  )
-                })()}
-              </div>
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <div className="text-sm font-medium text-blue-900 mb-2">
+              Qo'shimcha ma'lumotlar
             </div>
-          )}
+            <div className="space-y-2 text-blue-700">
+              {productBarcode && (
+                <div className="text-sm font-medium bg-blue-100 p-2 rounded">
+                  <span className="font-semibold">Barcode:</span>{' '}
+                  {productBarcode}
+                </div>
+              )}
+              {productDescription && (
+                <div className="text-sm bg-blue-100 p-2 rounded">
+                  <span className="font-semibold">Tavsif:</span>{' '}
+                  {productDescription}
+                </div>
+              )}
+              {typeof product.product === 'object' &&
+                product.product &&
+                'status' in product.product && (
+                  <div className="text-sm bg-blue-100 p-2 rounded">
+                    <span className="font-semibold">Holati:</span>{' '}
+                    {product.product.status === 'active' ? 'Faol' : 'Nofaol'}
+                  </div>
+                )}
+            </div>
+          </div>
 
           {/* Availability Status */}
           <div className="flex justify-center">
