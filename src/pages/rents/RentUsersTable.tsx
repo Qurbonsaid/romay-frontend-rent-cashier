@@ -40,6 +40,15 @@ const isOverdue = (deliveryDate: string, status: RentStatus): boolean => {
   return delivery < today
 }
 
+const isToday = (deliveryDate: string, status: RentStatus): boolean => {
+  if (status !== 'IN_PROGRESS') return false
+  const today = new Date()
+  const delivery = new Date(deliveryDate)
+  today.setHours(0, 0, 0, 0)
+  delivery.setHours(0, 0, 0, 0)
+  return delivery.getTime() === today.getTime()
+}
+
 // Translate API error messages to Uzbek
 const translateApiError = (errorMsg: string): string => {
   if (errorMsg.includes('Only rents created today can be deleted')) {
@@ -331,13 +340,12 @@ export default function RentUsersTable() {
                       className={`text-sm ${
                         isOverdue(rent.delivery_date, rent.status)
                           ? 'text-red-600 font-semibold'
-                          : 'text-[#18181B]'
+                          : isToday(rent.delivery_date, rent.status)
+                            ? 'text-green-600 font-semibold'
+                            : 'text-[#18181B]'
                       }`}
                     >
                       {formatDate(rent.delivery_date)}
-                      {isOverdue(rent.delivery_date, rent.status) && (
-                        <span className="ml-1 text-red-500">⚠️</span>
-                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">

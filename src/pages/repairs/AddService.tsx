@@ -122,8 +122,12 @@ export default function AddService() {
       client_id: '',
       mechanic: '',
       mechanic_salary: 0,
-      received_date: new Date(), // Set today's date as default
-      delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow as default delivery
+      received_date: new Date(), // Current date and time
+      delivery_date: (() => {
+        const tomorrow = new Date()
+        tomorrow.setDate(tomorrow.getDate() + 1)
+        return tomorrow // Tomorrow same time
+      })(),
     },
   })
 
@@ -438,9 +442,9 @@ export default function AddService() {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, 'dd/MM/yyyy HH:mm')
                               ) : (
-                                <span>Sanani tanlang</span>
+                                <span>Sana va vaqtni tanlang</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -450,10 +454,81 @@ export default function AddService() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              if (date) {
+                                // Keep existing time if available, otherwise set current time
+                                const existingTime = field.value || new Date()
+                                const newDate = new Date(date)
+                                newDate.setHours(existingTime.getHours())
+                                newDate.setMinutes(existingTime.getMinutes())
+                                field.onChange(newDate)
+                              }
+                            }}
                             disabled={(date) => date < new Date('1900-01-01')}
                             initialFocus
                           />
+                          <div className="p-3 border-t">
+                            <div className="flex items-center space-x-2">
+                              <label className="text-sm font-medium">
+                                Vaqt:
+                              </label>
+                              <div className="flex space-x-1">
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'HH') : ''
+                                  }
+                                  onValueChange={(hour) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setHours(parseInt(hour))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-sm self-center">:</span>
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'mm') : ''
+                                  }
+                                  onValueChange={(minute) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setMinutes(parseInt(minute))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 60 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -479,9 +554,9 @@ export default function AddService() {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, 'dd/MM/yyyy HH:mm')
                               ) : (
-                                <span>Sanani tanlang</span>
+                                <span>Sana va vaqtni tanlang</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -491,10 +566,81 @@ export default function AddService() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              if (date) {
+                                // Keep existing time if available, otherwise set current time
+                                const existingTime = field.value || new Date()
+                                const newDate = new Date(date)
+                                newDate.setHours(existingTime.getHours())
+                                newDate.setMinutes(existingTime.getMinutes())
+                                field.onChange(newDate)
+                              }
+                            }}
                             disabled={(date) => date < new Date('1900-01-01')}
                             initialFocus
                           />
+                          <div className="p-3 border-t">
+                            <div className="flex items-center space-x-2">
+                              <label className="text-sm font-medium">
+                                Vaqt:
+                              </label>
+                              <div className="flex space-x-1">
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'HH') : ''
+                                  }
+                                  onValueChange={(hour) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setHours(parseInt(hour))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-sm self-center">:</span>
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'mm') : ''
+                                  }
+                                  onValueChange={(minute) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setMinutes(parseInt(minute))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 60 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -596,7 +742,10 @@ export default function AddService() {
                     <span className="text-sm text-gray-600">Qabul qilish</span>
                     <span className="text-sm font-medium">
                       {form.watch('received_date')
-                        ? format(form.watch('received_date'), 'dd:MM:yyyy')
+                        ? format(
+                            form.watch('received_date'),
+                            'dd/MM/yyyy HH:mm'
+                          )
                         : 'Tanlanmagan'}
                     </span>
                   </div>
@@ -604,7 +753,10 @@ export default function AddService() {
                     <span className="text-sm text-gray-600">Topshirish</span>
                     <span className="text-sm font-medium">
                       {form.watch('delivery_date')
-                        ? format(form.watch('delivery_date'), 'dd:MM:yyyy')
+                        ? format(
+                            form.watch('delivery_date'),
+                            'dd/MM/yyyy HH:mm'
+                          )
                         : 'Tanlanmagan'}
                     </span>
                   </div>

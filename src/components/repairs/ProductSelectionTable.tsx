@@ -15,6 +15,7 @@ interface Product {
   product: {
     name: string
     description?: string
+    barcode?: string
     category_id?: {
       name: string
     }
@@ -145,6 +146,9 @@ export default function ProductSelectionTable({
                       Mahsulot
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Barcode
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Kategoriya
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -162,7 +166,7 @@ export default function ProductSelectionTable({
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         Yuklanmoqda...
@@ -171,7 +175,7 @@ export default function ProductSelectionTable({
                   ) : paginatedProducts.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={6}
                         className="px-4 py-8 text-center text-gray-500"
                       >
                         Mahsulotlar topilmadi
@@ -227,6 +231,11 @@ export default function ProductSelectionTable({
                               )}
                             </div>
                           </div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900">
+                          <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                            {product.product.barcode || 'N/A'}
+                          </span>
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-500">
                           {product.product.category_id?.name || 'Kategoriyasiz'}
