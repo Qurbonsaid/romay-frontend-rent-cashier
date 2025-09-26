@@ -729,7 +729,10 @@ export default function EditService() {
                     <span className="text-sm text-gray-600">Qabul qilish</span>
                     <span className="text-sm font-medium">
                       {form.watch('received_date')
-                        ? format(form.watch('received_date'), 'dd:MM:yyyy')
+                        ? format(
+                            form.watch('received_date'),
+                            'dd/MM/yyyy HH:mm'
+                          )
                         : 'Tanlanmagan'}
                     </span>
                   </div>
@@ -737,7 +740,10 @@ export default function EditService() {
                     <span className="text-sm text-gray-600">Topshirish</span>
                     <span className="text-sm font-medium">
                       {form.watch('delivery_date')
-                        ? format(form.watch('delivery_date'), 'dd:MM:yyyy')
+                        ? format(
+                            form.watch('delivery_date'),
+                            'dd/MM/yyyy HH:mm'
+                          )
                         : 'Tanlanmagan'}
                     </span>
                   </div>
