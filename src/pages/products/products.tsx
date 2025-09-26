@@ -277,15 +277,14 @@ function ProductPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-                              {product.product.images[0] ? (
-                                <img
-                                  src={product.product.images[0]}
-                                  alt={getProductName(product)}
-                                  className="h-8 w-8 object-cover rounded"
-                                />
-                              ) : (
-                                <span className="text-gray-400">📱</span>
-                              )}
+                              <img
+                                src={
+                                  product.product.images[0] ||
+                                  '/placeholder.png'
+                                }
+                                alt={getProductName(product)}
+                                className="h-8 w-8 object-cover rounded"
+                              />
                             </div>
                             <div>
                               <div className="text-sm font-medium text-[#18181B]">
@@ -349,15 +348,12 @@ function ProductPage() {
                     className="overflow-hidden border border-[#E4E4E7] rounded-xl cursor-pointer"
                     onClick={() => handleProductClick(product)}
                   >
-                    <CardContent className="p-3">
-                      <div className="w-full h-36 flex items-center justify-center">
+                    <CardContent className="px-3">
+                      <div className="w-full h-48 rounded-xl flex items-center justify-center overflow-hidden">
                         <img
-                          src={
-                            product.product.images[0] ||
-                            'https://media.istockphoto.com/id/184639599/photo/power-drill-with-large-bit.jpg?s=612x612&w=0&k=20&c=TJczKvZqLmWc5c5O6r86jelaUbYFLCZnwA_uWlhHOG0='
-                          }
+                          src={product.product.images[0] || '/placeholder.png'}
                           alt={getProductName(product)}
-                          className="max-h-full object-contain"
+                          className="w-full"
                         />
                       </div>
                       <div className="mt-2 text-sm font-medium text-[#18181B]">
@@ -462,15 +458,14 @@ function ProductPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-                              {product.product.images[0] ? (
-                                <img
-                                  src={product.product.images[0]}
-                                  alt={getProductName(product)}
-                                  className="h-8 w-8 object-cover rounded"
-                                />
-                              ) : (
-                                <span className="text-gray-400">📱</span>
-                              )}
+                              <img
+                                src={
+                                  product.product.images[0] ||
+                                  '/placeholder.png'
+                                }
+                                alt={getProductName(product)}
+                                className="h-8 w-8 object-cover rounded"
+                              />
                             </div>
                             <div>
                               <div className="text-sm font-medium text-[#18181B]">
@@ -537,10 +532,7 @@ function ProductPage() {
                     <CardContent className="p-3">
                       <div className="w-full h-36 flex items-center justify-center">
                         <img
-                          src={
-                            product.product.images[0] ||
-                            'https://media.istockphoto.com/id/184639599/photo/power-drill-with-large-bit.jpg?s=612x612&w=0&k=20&c=TJczKvZqLmWc5c5O6r86jelaUbYFLCZnwA_uWlhHOG0='
-                          }
+                          src={product.product.images[0] || '/placeholder.png'}
                           alt={getProductName(product)}
                           className="max-h-full object-contain"
                         />

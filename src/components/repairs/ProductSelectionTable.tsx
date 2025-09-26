@@ -44,6 +44,8 @@ interface ProductSelectionTableProps {
   itemsPerPage: number
   setItemsPerPage: (items: number) => void
   updateProductCount: (productId: string, change: number) => void
+  totalPages?: number
+  totalItems?: number
 }
 
 export default function ProductSelectionTable({
@@ -59,25 +61,19 @@ export default function ProductSelectionTable({
   itemsPerPage,
   setItemsPerPage,
   updateProductCount,
+  totalPages,
+  totalItems,
 }: ProductSelectionTableProps) {
-  // Filter products based on search and category
+  // Apply only category filter client-side (search is handled by backend)
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.product.name
-      .toLowerCase()
-      .includes(productSearch.toLowerCase())
     const matchesCategory =
       selectedCategory === 'all' ||
       product.product.category_id?.name === selectedCategory
-    return matchesSearch && matchesCategory
+    return matchesCategory
   })
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedProducts = filteredProducts.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  )
+  // Use filtered products for display (no client-side pagination needed as backend handles it)
+  const paginatedProducts = filteredProducts
 
   // Get unique categories for filter
   const categories = products.reduce(
@@ -193,31 +189,14 @@ export default function ProductSelectionTable({
                           <div className="flex items-center gap-3">
                             {/* Product Image */}
                             <div className="flex-shrink-0">
-                              {product.product.images &&
-                              product.product.images.length > 0 ? (
-                                <img
-                                  src={product.product.images[0]}
-                                  alt={product.product.name}
-                                  className="w-10 h-10 object-cover rounded-lg border"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement
-                                    target.style.display = 'none'
-                                    target.nextElementSibling!.classList.remove(
-                                      'hidden'
-                                    )
-                                  }}
-                                />
-                              ) : null}
-                              <div
-                                className={`w-10 h-10 bg-gray-200 rounded-lg border flex items-center justify-center text-gray-400 text-xs ${
-                                  product.product.images &&
-                                  product.product.images.length > 0
-                                    ? 'hidden'
-                                    : ''
-                                }`}
-                              >
-                                📦
-                              </div>
+                              <img
+                                src={
+                                  product.product.images?.[0] ||
+                                  '/placeholder.png'
+                                }
+                                alt={product.product.name}
+                                className="w-10 h-10 object-cover rounded-lg border"
+                              />
                             </div>
                             {/* Product Details */}
                             <div className="flex flex-col">
@@ -295,11 +274,11 @@ export default function ProductSelectionTable({
           </div>
 
           {/* Pagination Controls */}
-          {filteredProducts.length > itemsPerPage && (
+          {totalPages && totalPages > 1 && (
             <TablePagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={filteredProducts.length}
+              totalItems={totalItems || 0}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
               onItemsPerPageChange={(newItemsPerPage) => {

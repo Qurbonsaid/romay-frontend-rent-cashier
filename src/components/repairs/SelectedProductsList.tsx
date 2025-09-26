@@ -113,29 +113,13 @@ export default function SelectedProductsList({
 
                   {/* Product Image */}
                   <div className="flex-shrink-0">
-                    {item.product.product.images &&
-                    item.product.product.images.length > 0 ? (
-                      <img
-                        src={item.product.product.images[0]}
-                        alt={item.product.product.name}
-                        className="w-12 h-12 object-cover rounded-lg border shadow-sm"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
-                          target.nextElementSibling!.classList.remove('hidden')
-                        }}
-                      />
-                    ) : null}
-                    <div
-                      className={`w-12 h-12 bg-gray-100 rounded-lg border flex items-center justify-center ${
-                        item.product.product.images &&
-                        item.product.product.images.length > 0
-                          ? 'hidden'
-                          : ''
-                      }`}
-                    >
-                      <span className="text-gray-400 text-lg">📦</span>
-                    </div>
+                    <img
+                      src={
+                        item.product.product.images?.[0] || '/placeholder.png'
+                      }
+                      alt={item.product.product.name}
+                      className="w-12 h-12 object-cover rounded-lg border shadow-sm"
+                    />
                   </div>
 
                   {/* Product Info */}

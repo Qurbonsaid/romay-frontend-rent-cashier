@@ -879,34 +879,23 @@ export default function RentDetails() {
                               <div className="flex items-center gap-2">
                                 {/* Product Image */}
                                 <div className="flex-shrink-0">
-                                  {typeof rentProduct.rent_product ===
-                                    'object' &&
-                                  rentProduct.rent_product?.product?.images &&
-                                  rentProduct.rent_product.product.images
-                                    .length > 0 ? (
-                                    <img
-                                      src={
-                                        rentProduct.rent_product.product
-                                          .images[0]
-                                      }
-                                      alt={
-                                        rentProduct.rent_product.product.name
-                                      }
-                                      className="w-8 h-8 object-cover rounded border"
-                                      onError={(e) => {
-                                        const target =
-                                          e.target as HTMLImageElement
-                                        target.src =
-                                          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAzMEMyNS41MjI5IDMwIDMwIDI1LjUyMjkgMzAgMjBDMzAgMTQuNDc3MSAyNS41MjI5IDEwIDIwIDEwQzE0LjQ3NzEgMTAgMTAgMTQuNDc3MSAxMCAyMEMxMCAyNS41MjI5IDE0LjQ3NzEgMzAgMjAgMzBaIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0xNCAyMEwxNy41IDIzLjVMMjYgMTUiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg=='
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-8 h-8 bg-gray-100 rounded border flex items-center justify-center">
-                                      <span className="text-gray-400 text-xs">
-                                        📦
-                                      </span>
-                                    </div>
-                                  )}
+                                  <img
+                                    src={
+                                      (typeof rentProduct.rent_product ===
+                                        'object' &&
+                                        rentProduct.rent_product?.product
+                                          ?.images?.[0]) ||
+                                      '/placeholder.png'
+                                    }
+                                    alt={
+                                      typeof rentProduct.rent_product ===
+                                        'object' &&
+                                      rentProduct.rent_product?.product?.name
+                                        ? rentProduct.rent_product.product.name
+                                        : "Noma'lum mahsulot"
+                                    }
+                                    className="w-8 h-8 object-cover rounded border"
+                                  />
                                 </div>
                                 {/* Product Name */}
                                 <div className="min-w-0 flex-1">

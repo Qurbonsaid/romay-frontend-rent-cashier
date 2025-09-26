@@ -161,15 +161,11 @@ export const Dashboard: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 bg-gray-100 rounded flex items-center justify-center">
-                          {product.image ? (
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="h-8 w-8 object-cover"
-                            />
-                          ) : (
-                            <span className="text-gray-400">📱</span>
-                          )}
+                          <img
+                            src={product.image || '/placeholder.png'}
+                            alt={product.name}
+                            className="h-8 w-8 object-cover"
+                          />
                         </div>
                         <div>
                           <div className="text-sm font-medium text-[#18181B]">

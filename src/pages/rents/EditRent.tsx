@@ -47,6 +47,7 @@ import type { Client } from '@/types/clients.d'
 // Hooks and Utils
 import { useGetRole } from '@/hooks/use-get-role'
 import { useGetBranch } from '@/hooks/use-get-branch'
+import { useDebounce } from '@/hooks/use-debounce'
 import { CheckRole } from '@/utils/checkRole'
 
 // Rent form schema matching API requirements
@@ -87,6 +88,14 @@ export default function EditRent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
+  // Debounce search term for API optimization
+  const debouncedProductSearch = useDebounce(productSearch, 300)
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedProductSearch])
+
   // API hooks
   const { data: rentData, isLoading: rentLoading } = useGetRentQuery(
     {
@@ -114,8 +123,9 @@ export default function EditRent() {
   // Fetch data for selection components
   const { data: allProductsData, isLoading: productsLoading } =
     useGetAllRentProductsQuery({
-      page: 1,
-      limit: 1000,
+      page: currentPage,
+      limit: itemsPerPage,
+      search: debouncedProductSearch || undefined,
       branch: branch?._id,
     })
 
@@ -404,6 +414,8 @@ export default function EditRent() {
         itemsPerPage={itemsPerPage}
         setItemsPerPage={setItemsPerPage}
         updateProductCount={updateProductCount}
+        totalPages={allProductsData?.page_count}
+        totalItems={allProductsData?.after_filtering_count}
       />
 
       {/* Two-column layout for form and information */}

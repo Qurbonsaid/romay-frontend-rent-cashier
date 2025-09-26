@@ -6,10 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import {
   ChevronDown,
   ChevronUp,
-  Package,
   Tag,
   Barcode,
   AlertCircle,
+  Package,
 } from 'lucide-react'
 import type { RentProduct } from '@/store/rent/types'
 
@@ -72,15 +72,14 @@ export function OrderProductCard({ rentProduct }: OrderProductCardProps) {
             <div className="flex items-center gap-3 flex-1">
               {/* Product Image or Placeholder */}
               <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                {productDetails?.data?.product?.images?.[0] ? (
-                  <img
-                    src={productDetails.data.product.images[0]}
-                    alt={productName}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Package className="h-5 w-5 text-gray-400" />
-                )}
+                <img
+                  src={
+                    productDetails?.data?.product?.images?.[0] ||
+                    '/placeholder.png'
+                  }
+                  alt={productName}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               <div className="flex-1 min-w-0">

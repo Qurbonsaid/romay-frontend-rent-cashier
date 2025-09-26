@@ -36,6 +36,8 @@ interface ProductSelectionTableProps {
   itemsPerPage: number
   setItemsPerPage: (items: number) => void
   updateProductCount: (productId: string, change: number) => void
+  totalPages?: number
+  totalItems?: number
 }
 
 export default function ProductSelectionTable({
@@ -51,28 +53,22 @@ export default function ProductSelectionTable({
   itemsPerPage,
   setItemsPerPage,
   updateProductCount,
+  totalPages,
+  totalItems,
 }: ProductSelectionTableProps) {
-  // Filter products based on search and category
+  // Apply only category filter client-side (search is handled by backend)
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.product.name
-      .toLowerCase()
-      .includes(productSearch.toLowerCase())
     const categoryValue =
       typeof product.product.category_id === 'object'
         ? (product.product.category_id as { _id: string; name: string })?._id
         : product.product.category_id
     const matchesCategory =
       selectedCategory === 'all' || categoryValue === selectedCategory
-    return matchesSearch && matchesCategory
+    return matchesCategory
   })
 
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedProducts = filteredProducts.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  )
+  // Use filtered products for display (backend handles search and pagination)
+  const paginatedProducts = filteredProducts
 
   // Get unique categories for filter
   const categories = products.reduce(
@@ -311,11 +307,11 @@ export default function ProductSelectionTable({
           </div>
 
           {/* Pagination Controls */}
-          {filteredProducts.length > itemsPerPage && (
+          {totalPages && totalPages > 1 && (
             <TablePagination
               currentPage={currentPage}
               totalPages={totalPages}
-              totalItems={filteredProducts.length}
+              totalItems={totalItems || 0}
               itemsPerPage={itemsPerPage}
               onPageChange={setCurrentPage}
               onItemsPerPageChange={(newItemsPerPage) => {

@@ -191,7 +191,7 @@ export default function RentProductsTable({
                           className="h-10 w-10 rounded-lg object-cover"
                           src={
                             rentProduct.product?.images?.[0] ||
-                            '/placeholder-image.jpg'
+                            '/placeholder.png'
                           }
                           alt={rentProduct.product?.name || 'Mahsulot'}
                         />

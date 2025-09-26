@@ -82,10 +82,7 @@ export function ProductGrid({
           <CardContent className="p-3">
             <div className="w-full h-36 flex items-center justify-center">
               <img
-                src={
-                  product.product.images[0] ||
-                  'https://media.istockphoto.com/id/184639599/photo/power-drill-with-large-bit.jpg?s=612x612&w=0&k=20&c=TJczKvZqLmWc5c5O6r86jelaUbYFLCZnwA_uWlhHOG0='
-                }
+                src={product.product.images[0] || '/placeholder.png'}
                 alt={getProductName(product)}
                 className="max-h-full object-contain hover:scale-105 transition-transform duration-200"
               />

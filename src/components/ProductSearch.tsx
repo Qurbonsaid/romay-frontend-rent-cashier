@@ -92,18 +92,11 @@ export default function ProductSearch({
                 >
                   {/* Product Image */}
                   <div className="w-10 h-10 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-                    {product.product.images &&
-                    product.product.images.length > 0 ? (
-                      <img
-                        src={product.product.images[0]}
-                        alt={product.product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                        <span className="text-gray-400 text-xs">N/A</span>
-                      </div>
-                    )}
+                    <img
+                      src={product.product.images?.[0] || '/placeholder.png'}
+                      alt={product.product.name}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
 
                   {/* Product Info */}
