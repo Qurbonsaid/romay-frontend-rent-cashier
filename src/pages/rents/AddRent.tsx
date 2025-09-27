@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -47,6 +47,7 @@ import type { Client } from '@/types/clients.d'
 // Hooks and Utils
 import { useGetRole } from '@/hooks/use-get-role'
 import { useGetBranch } from '@/hooks/use-get-branch'
+import { useDebounce } from '@/hooks/use-debounce'
 import { CheckRole } from '@/utils/checkRole'
 
 // Rent form schema matching API requirements
@@ -86,6 +87,14 @@ export default function AddRent() {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
+  // Debounce search term for API optimization
+  const debouncedProductSearch = useDebounce(productSearch, 300)
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedProductSearch])
+
   // Form setup with React Hook Form
   const form = useForm<RentFormData>({
     resolver: zodResolver(rentSchema),
@@ -113,9 +122,9 @@ export default function AddRent() {
 
   const { data: rentProductsData, isLoading: rentProductsLoading } =
     useGetAllRentProductsQuery({
-      search: productSearch || undefined,
-      page: 1,
-      limit: 1000,
+      search: debouncedProductSearch || undefined,
+      page: currentPage,
+      limit: itemsPerPage,
       branch: branch?._id,
     })
 
@@ -298,6 +307,8 @@ export default function AddRent() {
         itemsPerPage={itemsPerPage}
         setItemsPerPage={setItemsPerPage}
         updateProductCount={updateProductCount}
+        totalPages={rentProductsData?.page_count}
+        totalItems={rentProductsData?.after_filtering_count}
       />
 
       {/* Two-column layout for form and information */}

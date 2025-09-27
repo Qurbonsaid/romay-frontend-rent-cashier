@@ -46,17 +46,11 @@ export default function ProductCard({
     <div className="flex items-center gap-4 p-4 border border-gray-200 rounded-lg bg-white">
       {/* Product Image */}
       <div className="w-16 h-16 bg-gray-100 rounded-lg flex-shrink-0 overflow-hidden">
-        {product.product.images && product.product.images.length > 0 ? (
-          <img
-            src={product.product.images[0]}
-            alt={product.product.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-            <span className="text-gray-400 text-xs">No image</span>
-          </div>
-        )}
+        <img
+          src={product.product.images?.[0] || '/placeholder.png'}
+          alt={product.product.name}
+          className="w-full h-full object-cover"
+        />
       </div>
 
       {/* Product Info */}

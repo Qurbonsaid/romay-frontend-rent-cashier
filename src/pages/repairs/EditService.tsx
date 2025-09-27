@@ -53,6 +53,7 @@ import type { Client } from '@/types/clients.d'
 // Hooks and Utils
 import { useGetRole } from '@/hooks/use-get-role'
 import { useGetBranch } from '@/hooks/use-get-branch'
+import { useDebounce } from '@/hooks/use-debounce'
 import { CheckRole } from '@/utils/checkRole'
 import { formatNumberInput, formatCurrency } from '@/utils/numberFormat'
 
@@ -92,6 +93,14 @@ export default function EditService() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [salaryDisplay, setSalaryDisplay] = useState('')
 
+  // Debounce search term for API optimization
+  const debouncedProductSearch = useDebounce(productSearch, 300)
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedProductSearch])
+
   // API hooks
   const { data: serviceData, isLoading: serviceLoading } = useGetServiceQuery(
     {
@@ -112,8 +121,9 @@ export default function EditService() {
 
   const { data: productsData, isLoading: productsLoading } =
     useGetAllSaleProductsQuery({
-      page: 1,
-      limit: 1000, // Get all products for selection
+      page: currentPage,
+      limit: itemsPerPage,
+      search: debouncedProductSearch || undefined,
       branch: branch?._id,
     })
 
@@ -398,6 +408,8 @@ export default function EditService() {
         itemsPerPage={itemsPerPage}
         setItemsPerPage={setItemsPerPage}
         updateProductCount={updateProductCount}
+        totalPages={productsData?.page_count}
+        totalItems={productsData?.after_filtering_count}
       />
       {/* Two-column layout for form and information */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

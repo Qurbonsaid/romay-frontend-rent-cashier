@@ -195,7 +195,7 @@ export default function ManagerRepairDetailsPage() {
                 {/* Product Image */}
                 <div className="w-1/3 bg-gray-100 rounded-lg flex items-center justify-center p-6">
                   <img
-                    src="/placeholder-product.jpg"
+                    src="/placeholder.png"
                     alt={selectedProduct.name}
                     className="max-w-full max-h-64 object-contain"
                   />

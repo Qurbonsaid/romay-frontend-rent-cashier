@@ -66,17 +66,13 @@ export function ServiceProductSelector({
                   <div className="flex items-center space-x-4">
                     {/* Product Image */}
                     <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                      {item.product.product.images?.[0] ? (
-                        <img
-                          src={item.product.product.images[0]}
-                          alt={item.product.product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <span>No Image</span>
-                        </div>
-                      )}
+                      <img
+                        src={
+                          item.product.product.images?.[0] || '/placeholder.png'
+                        }
+                        alt={item.product.product.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
 
                     {/* Product Info */}

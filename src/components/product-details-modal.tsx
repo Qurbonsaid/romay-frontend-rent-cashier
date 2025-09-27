@@ -226,7 +226,7 @@ export default function ProductDetailsModal({
                     'images' in product.product &&
                     product.product.images?.length > 0
                       ? product.product.images[0]
-                      : '/vite.svg'
+                      : '/placeholder.png'
                   }
                   alt={productName}
                   className="max-w-full max-h-full object-contain rounded-lg"

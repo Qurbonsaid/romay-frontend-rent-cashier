@@ -697,27 +697,20 @@ export default function RepairDetails() {
                               <div className="flex items-center gap-3">
                                 {/* Product Image */}
                                 <div className="flex-shrink-0">
-                                  {typeof productItem.product === 'object' &&
-                                  productItem.product?.images &&
-                                  productItem.product.images.length > 0 ? (
-                                    <img
-                                      src={productItem.product.images[0]}
-                                      alt={productItem.product.name}
-                                      className="w-10 h-10 object-cover rounded border"
-                                      onError={(e) => {
-                                        const target =
-                                          e.target as HTMLImageElement
-                                        target.src =
-                                          'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAzMEMyNS41MjI5IDMwIDMwIDI1LjUyMjkgMzAgMjBDMzAgMTQuNDc3MSAyNS41MjI5IDEwIDIwIDEwQzE0LjQ3NzEgMTAgMTAgMTQuNDc3MSAxMCAyMEMxMCAyNS41MjI5IDE0LjQ3NzEgMzAgMjAgMzBaIiBzdHJva2U9IiM5Q0EzQUYiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0xNCAyMEwxNy41IDIzLjVMMjYgMTUiIHN0cm9rZT0iIzlDQTNBRiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg=='
-                                      }}
-                                    />
-                                  ) : (
-                                    <div className="w-10 h-10 bg-gray-100 rounded border flex items-center justify-center">
-                                      <span className="text-gray-400 text-sm">
-                                        📦
-                                      </span>
-                                    </div>
-                                  )}
+                                  <img
+                                    src={
+                                      (typeof productItem.product ===
+                                        'object' &&
+                                        productItem.product?.images?.[0]) ||
+                                      '/placeholder.png'
+                                    }
+                                    alt={
+                                      typeof productItem.product === 'object'
+                                        ? productItem.product.name
+                                        : 'Mahsulot'
+                                    }
+                                    className="w-10 h-10 object-cover rounded border"
+                                  />
                                 </div>
                                 {/* Product Name */}
                                 <div>
