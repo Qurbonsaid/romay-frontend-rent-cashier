@@ -66,6 +66,7 @@ interface SelectedProduct {
   rent_product_count: number
   name: string
   rent_price: number
+  rent_change_price: number
   available_quantity: number
 }
 
@@ -76,6 +77,9 @@ export default function AddRent() {
 
   // State for product selection and UI
   const [productQuantities, setProductQuantities] = useState<{
+    [productId: string]: number
+  }>({})
+  const [productPrices, setProductPrices] = useState<{
     [productId: string]: number
   }>({})
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
@@ -160,8 +164,17 @@ export default function AddRent() {
     const currentCount = productQuantities[productId] || 0
     const newCount = currentCount + change
 
-    if (newCount <= 0) {
+    if (newCount < 0) {
+      return
+    }
+
+    if (newCount === 0) {
       setProductQuantities((prev) => {
+        const updated = { ...prev }
+        delete updated[productId]
+        return updated
+      })
+      setProductPrices((prev) => {
         const updated = { ...prev }
         delete updated[productId]
         return updated
@@ -176,6 +189,14 @@ export default function AddRent() {
       ...prev,
       [productId]: newCount,
     }))
+
+    // Set default price if not already set
+    if (!productPrices[productId]) {
+      setProductPrices((prev) => ({
+        ...prev,
+        [productId]: product.product_rent_price,
+      }))
+    }
   }
 
   // Convert productQuantities to selected products for display
@@ -190,6 +211,8 @@ export default function AddRent() {
           rent_product_count: quantity,
           name: product.product.name,
           rent_price: product.product_rent_price,
+          rent_change_price:
+            productPrices[productId] || product.product_rent_price,
           available_quantity: product.product_active_count,
         })
       }
@@ -216,6 +239,19 @@ export default function AddRent() {
       delete updated[productId]
       return updated
     })
+    setProductPrices((prev) => {
+      const updated = { ...prev }
+      delete updated[productId]
+      return updated
+    })
+  }
+
+  // Function to update product price
+  const updateProductPrice = (productId: string, newPrice: number) => {
+    setProductPrices((prev) => ({
+      ...prev,
+      [productId]: newPrice,
+    }))
   }
 
   const handleSubmit = async (data: RentFormData) => {
@@ -235,6 +271,7 @@ export default function AddRent() {
         ([productId, quantity]) => ({
           rent_product: productId,
           rent_product_count: quantity,
+          rent_change_price: productPrices[productId] || 0,
         })
       )
 
@@ -272,7 +309,7 @@ export default function AddRent() {
 
   const getTotalProductsSum = () => {
     return selectedProductsList.reduce((total, item) => {
-      return total + item.rent_price * item.rent_product_count
+      return total + item.rent_change_price * item.rent_product_count
     }, 0)
   }
 
@@ -574,6 +611,7 @@ export default function AddRent() {
         selectedProducts={selectedProductsList}
         onRemoveProduct={removeProduct}
         onUpdateQuantity={updateProductCount}
+        onUpdatePrice={updateProductPrice}
         images={getProductImages()}
       />
     </div>

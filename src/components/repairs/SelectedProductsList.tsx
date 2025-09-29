@@ -1,9 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { formatCurrency } from '@/utils/numberFormat'
+import { formatCurrency, formatNumberInput } from '@/utils/numberFormat'
 import { useState } from 'react'
 import { Search } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface Product {
   _id: string
@@ -22,12 +27,14 @@ interface Product {
 interface SelectedProduct {
   product: Product
   product_count: number
+  product_change_price: number
 }
 
 interface SelectedProductsListProps {
   selectedProducts: SelectedProduct[]
   onRemoveProduct?: (productId: string) => void
   onUpdateQuantity?: (productId: string, change: number) => void
+  onUpdatePrice?: (productId: string, newPrice: number) => void
   availableProducts?: Product[] // Add this to get stock information
 }
 
@@ -35,9 +42,13 @@ export default function SelectedProductsList({
   selectedProducts,
   onRemoveProduct,
   onUpdateQuantity,
+  onUpdatePrice,
   availableProducts = [],
 }: SelectedProductsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [priceDisplays, setPriceDisplays] = useState<{ [key: string]: string }>(
+    {}
+  )
 
   if (selectedProducts.length === 0) {
     return null
@@ -60,7 +71,7 @@ export default function SelectedProductsList({
     0
   )
   const totalPrice = selectedProducts.reduce((sum, item) => {
-    const price = item.product.product.price || 0
+    const price = item.product_change_price || 0
     return sum + price * item.product_count
   }, 0)
 
@@ -123,8 +134,9 @@ export default function SelectedProductsList({
             </div>
           ) : (
             filteredProducts.map((item, index) => {
-              const itemPrice = item.product.product.price || 0
-              const itemTotal = itemPrice * item.product_count
+              const originalPrice = item.product.product.price || 0
+              const currentPrice = item.product_change_price || 0
+              const itemTotal = currentPrice * item.product_count
 
               return (
                 <div
@@ -150,9 +162,20 @@ export default function SelectedProductsList({
 
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {item.product.product.name}
-                      </h4>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <h4 className="font-medium text-gray-900 cursor-pointer">
+                            {item.product.product.name.length > 30
+                              ? `${item.product.product.name.substring(0, 30)}...`
+                              : item.product.product.name}
+                          </h4>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">
+                            {item.product.product.name}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
                       <div className="flex items-center gap-2 mt-0.5">
                         {item.product.product.category_id?.name && (
                           <p className="text-sm text-gray-500">
@@ -176,7 +199,6 @@ export default function SelectedProductsList({
                           variant="outline"
                           className="h-8 w-8 p-0"
                           onClick={() => onUpdateQuantity(item.product._id, -1)}
-                          disabled={item.product_count <= 1}
                         >
                           -
                         </Button>
@@ -198,14 +220,75 @@ export default function SelectedProductsList({
                       </div>
                     )}
 
-                    {/* Price Info */}
-                    <div className="text-right min-w-[80px]">
-                      <div className="text-sm text-gray-600">
-                        {formatCurrency(itemPrice)}
-                      </div>
-                      <div className="font-medium text-gray-900">
-                        {formatCurrency(itemTotal)}
-                      </div>
+                    {/* Price Input */}
+                    <div className="text-right min-w-[140px]">
+                      {onUpdatePrice ? (
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500">
+                            Asl: {formatCurrency(originalPrice)}
+                          </div>
+                          <Input
+                            type="text"
+                            placeholder="0"
+                            value={
+                              priceDisplays[item.product._id] ||
+                              (currentPrice > 0
+                                ? formatNumberInput(currentPrice.toString())
+                                    .display
+                                : '')
+                            }
+                            onChange={(e) => {
+                              const inputValue = e.target.value
+                              if (inputValue === '' || inputValue === '0') {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.product._id]: '',
+                                }))
+                                onUpdatePrice(item.product._id, 0)
+                              } else {
+                                const formatted = formatNumberInput(inputValue)
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.product._id]: formatted.display,
+                                }))
+                                onUpdatePrice(
+                                  item.product._id,
+                                  formatted.numeric
+                                )
+                              }
+                            }}
+                            onBlur={() => {
+                              // Update display to match the numeric value
+                              if (currentPrice > 0) {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.product._id]: formatNumberInput(
+                                    currentPrice.toString()
+                                  ).display,
+                                }))
+                              } else {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.product._id]: '',
+                                }))
+                              }
+                            }}
+                            className="h-8 w-28 text-sm text-right"
+                          />
+                          <div className="text-sm font-medium text-gray-900">
+                            {formatCurrency(itemTotal)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-sm text-gray-600">
+                            {formatCurrency(currentPrice)}
+                          </div>
+                          <div className="font-medium text-gray-900">
+                            {formatCurrency(itemTotal)}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Remove Button */}

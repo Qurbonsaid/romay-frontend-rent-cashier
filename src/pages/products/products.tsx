@@ -26,6 +26,11 @@ import { CreateProductDialog } from '@/components/products/CreateProductDialog'
 import { useGetRole } from '@/hooks/use-get-role'
 import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 function ProductPage() {
   const branch = useGetBranch()
@@ -287,9 +292,20 @@ function ProductPage() {
                               />
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-[#18181B]">
-                                {getProductName(product)}
-                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="text-sm font-medium text-[#18181B] cursor-pointer">
+                                    {getProductName(product).length > 30
+                                      ? `${getProductName(product).substring(0, 30)}...`
+                                      : getProductName(product)}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs">
+                                    {getProductName(product)}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
                             </div>
                           </div>
                         </td>
@@ -349,11 +365,11 @@ function ProductPage() {
                     onClick={() => handleProductClick(product)}
                   >
                     <CardContent className="px-3">
-                      <div className="w-full h-48 rounded-xl flex items-center justify-center overflow-hidden">
+                      <div className="w-full h-48 bg-[#f0f0f0] rounded-xl flex items-center justify-center overflow-hidden">
                         <img
                           src={product.product.images[0] || '/placeholder.png'}
                           alt={getProductName(product)}
-                          className="w-full"
+                          className="w-7/12"
                         />
                       </div>
                       <div className="mt-2 text-sm font-medium text-[#18181B]">
@@ -468,9 +484,20 @@ function ProductPage() {
                               />
                             </div>
                             <div>
-                              <div className="text-sm font-medium text-[#18181B]">
-                                {getProductName(product)}
-                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="text-sm font-medium text-[#18181B] cursor-pointer">
+                                    {getProductName(product).length > 30
+                                      ? `${getProductName(product).substring(0, 30)}...`
+                                      : getProductName(product)}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs">
+                                    {getProductName(product)}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
                             </div>
                           </div>
                         </td>
@@ -529,12 +556,12 @@ function ProductPage() {
                     className="overflow-hidden border border-[#E4E4E7] rounded-xl cursor-pointer"
                     onClick={() => handleProductClick(product)}
                   >
-                    <CardContent className="p-3">
-                      <div className="w-full h-36 flex items-center justify-center">
+                    <CardContent className="px-3">
+                      <div className="w-full h-48 bg-[#f0f0f0] rounded-xl flex items-center justify-center overflow-hidden">
                         <img
                           src={product.product.images[0] || '/placeholder.png'}
                           alt={getProductName(product)}
-                          className="max-h-full object-contain"
+                          className="w-7/12"
                         />
                       </div>
                       <div className="mt-2 text-sm font-medium text-[#18181B]">

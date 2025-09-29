@@ -12,6 +12,11 @@ import {
 } from '@/components/ui/table'
 import ProductDetailsModal from '@/components/ProductDetailsModal'
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import {
   ChevronDown,
   ChevronUp,
   CreditCard,
@@ -338,13 +343,33 @@ export function OrderCard({
                                   </div>
                                   {/* Product Name */}
                                   <div className="min-w-0 flex-1">
-                                    <div className="font-medium text-gray-900 text-sm truncate">
-                                      {typeof rentProduct.rent_product ===
-                                        'object' &&
-                                      rentProduct.rent_product?.product?.name
-                                        ? rentProduct.rent_product.product.name
-                                        : "Noma'lum mahsulot"}
-                                    </div>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="font-medium text-gray-900 text-sm cursor-pointer">
+                                          {typeof rentProduct.rent_product ===
+                                            'object' &&
+                                          rentProduct.rent_product?.product
+                                            ?.name
+                                            ? rentProduct.rent_product.product
+                                                .name.length > 30
+                                              ? `${rentProduct.rent_product.product.name.substring(0, 30)}...`
+                                              : rentProduct.rent_product.product
+                                                  .name
+                                            : "Noma'lum mahsulot"}
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="max-w-xs">
+                                          {typeof rentProduct.rent_product ===
+                                            'object' &&
+                                          rentProduct.rent_product?.product
+                                            ?.name
+                                            ? rentProduct.rent_product.product
+                                                .name
+                                            : "Noma'lum mahsulot"}
+                                        </p>
+                                      </TooltipContent>
+                                    </Tooltip>
                                   </div>
                                 </div>
                               </TableCell>

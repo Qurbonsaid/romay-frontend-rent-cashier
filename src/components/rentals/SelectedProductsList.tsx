@@ -1,14 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { formatNumberInput, formatCurrency } from '@/utils/numberFormat'
 import { useState } from 'react'
 import { Search } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface SelectedRentProduct {
   rent_product: string
   rent_product_count: number
   name: string
   rent_price: number
+  rent_change_price: number
   available_quantity: number
 }
 
@@ -16,6 +23,7 @@ interface SelectedProductsListProps {
   selectedProducts: SelectedRentProduct[]
   onRemoveProduct?: (productId: string) => void
   onUpdateQuantity?: (productId: string, change: number) => void
+  onUpdatePrice?: (productId: string, newPrice: number) => void
   images?: Record<string, string[]> // product_id -> images mapping
 }
 
@@ -23,9 +31,13 @@ export default function SelectedProductsList({
   selectedProducts,
   onRemoveProduct,
   onUpdateQuantity,
+  onUpdatePrice,
   images = {},
 }: SelectedProductsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
+  const [priceDisplays, setPriceDisplays] = useState<{ [key: string]: string }>(
+    {}
+  )
 
   if (selectedProducts.length === 0) {
     return null
@@ -36,18 +48,13 @@ export default function SelectedProductsList({
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  // Format price
-  const formatPrice = (price: number): string => {
-    return new Intl.NumberFormat('uz-UZ').format(price)
-  }
-
   // Calculate totals
   const totalQuantity = selectedProducts.reduce(
     (sum, item) => sum + item.rent_product_count,
     0
   )
   const totalPrice = selectedProducts.reduce((sum, item) => {
-    return sum + item.rent_price * item.rent_product_count
+    return sum + item.rent_change_price * item.rent_product_count
   }, 0)
 
   return (
@@ -62,7 +69,7 @@ export default function SelectedProductsList({
               Jami miqdor: {totalQuantity}
             </div>
             <div className="text-lg font-semibold text-gray-900">
-              {formatPrice(totalPrice)} so'm
+              {formatCurrency(totalPrice)}
             </div>
           </div>
         </div>
@@ -109,7 +116,9 @@ export default function SelectedProductsList({
             </div>
           ) : (
             filteredProducts.map((item, index) => {
-              const itemTotal = item.rent_price * item.rent_product_count
+              const originalPrice = item.rent_price
+              const currentPrice = item.rent_change_price
+              const itemTotal = currentPrice * item.rent_product_count
               const productImages = images[item.rent_product] || []
 
               return (
@@ -138,9 +147,18 @@ export default function SelectedProductsList({
 
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 truncate">
-                        {item.name}
-                      </h4>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <h4 className="font-medium text-gray-900 cursor-pointer">
+                            {item.name.length > 30
+                              ? `${item.name.substring(0, 30)}...`
+                              : item.name}
+                          </h4>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-xs">{item.name}</p>
+                        </TooltipContent>
+                      </Tooltip>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-sm text-gray-500">
                           Mavjud: {item.available_quantity} dona
@@ -161,7 +179,6 @@ export default function SelectedProductsList({
                           onClick={() =>
                             onUpdateQuantity(item.rent_product, -1)
                           }
-                          disabled={item.rent_product_count <= 1}
                         >
                           -
                         </Button>
@@ -182,14 +199,93 @@ export default function SelectedProductsList({
                       </div>
                     )}
 
-                    {/* Price Info */}
-                    <div className="text-right min-w-[80px]">
-                      <div className="text-sm text-gray-600">
-                        {formatPrice(item.rent_price)} so'm
-                      </div>
-                      <div className="font-medium text-gray-900">
-                        {formatPrice(itemTotal)} so'm
-                      </div>
+                    {/* Price Input */}
+                    <div className="text-right min-w-[140px]">
+                      {onUpdatePrice ? (
+                        <div className="space-y-1">
+                          <div className="text-xs text-gray-500">
+                            Asl: {formatCurrency(originalPrice)}
+                          </div>
+                          <Input
+                            type="text"
+                            placeholder="0"
+                            value={
+                              item.rent_product in priceDisplays
+                                ? priceDisplays[item.rent_product]
+                                : currentPrice > 0
+                                  ? formatNumberInput(currentPrice.toString())
+                                      .display
+                                  : ''
+                            }
+                            onChange={(e) => {
+                              const inputValue = e.target.value
+
+                              // Agar input bo'sh bo'lsa
+                              if (inputValue === '') {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.rent_product]: '',
+                                }))
+                                onUpdatePrice(item.rent_product, 0)
+                                return
+                              }
+
+                              // Faqat raqamlarni olish
+                              const digitsOnly = inputValue.replace(/\D/g, '')
+
+                              // Agar raqam bo'lmasa
+                              if (digitsOnly === '') {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.rent_product]: '',
+                                }))
+                                onUpdatePrice(item.rent_product, 0)
+                                return
+                              }
+
+                              // Raqamni formatlash
+                              const numericValue = parseInt(digitsOnly, 10)
+                              const formattedDisplay =
+                                formatNumberInput(digitsOnly).display
+
+                              setPriceDisplays((prev) => ({
+                                ...prev,
+                                [item.rent_product]: formattedDisplay,
+                              }))
+                              onUpdatePrice(item.rent_product, numericValue)
+                            }}
+                            onBlur={() => {
+                              // Display ni haqiqiy qiymat bilan sinxronlashtirish
+                              if (currentPrice > 0) {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.rent_product]: formatNumberInput(
+                                    currentPrice.toString()
+                                  ).display,
+                                }))
+                              } else {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.rent_product]: '',
+                                }))
+                              }
+                            }}
+                            className="h-8 w-28 text-sm text-right"
+                          />
+                          <div className="text-sm font-medium text-gray-900">
+                            {formatCurrency(itemTotal)}
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="text-sm text-gray-600">
+                            {formatCurrency(currentPrice)}
+                          </div>
+                          <div className="font-medium text-gray-900">
+                            {formatCurrency(itemTotal)}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Remove Button */}
