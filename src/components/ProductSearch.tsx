@@ -6,6 +6,11 @@ import { useGetAllSaleProductsQuery } from '@/store/product/product.api'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
 import { useDebounce } from '@/hooks/use-debounce'
 import { useGetBranch } from '@/hooks/use-get-branch'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ProductSearchProps {
   onProductSelect: (product: ProductWarehouseItem) => void
@@ -101,9 +106,18 @@ export default function ProductSearch({
 
                   {/* Product Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate">
-                      {product.product.name}
-                    </p>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <p className="font-medium text-gray-900 cursor-pointer">
+                          {product.product.name.length > 30
+                            ? `${product.product.name.substring(0, 30)}...`
+                            : product.product.name}
+                        </p>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{product.product.name}</p>
+                      </TooltipContent>
+                    </Tooltip>
                     <p className="text-sm text-gray-500">
                       {formatPrice(
                         product.product.price,

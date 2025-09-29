@@ -53,12 +53,18 @@ export const formatNumberInput = (
   const digitsOnly = value.replace(/\D/g, '')
 
   // If empty, return empty display and 0 numeric
-  if (digitsOnly === '') {
+  if (digitsOnly === '' || digitsOnly === '0') {
     return { display: '', numeric: 0 }
   }
 
-  // Convert to number and format
+  // Remove leading zeros and convert to number
   const numeric = parseInt(digitsOnly, 10)
+
+  // Agar 0 bo'lsa, bo'sh string qaytarish
+  if (numeric === 0) {
+    return { display: '', numeric: 0 }
+  }
+
   const display = formatNumber(numeric)
 
   return { display, numeric }

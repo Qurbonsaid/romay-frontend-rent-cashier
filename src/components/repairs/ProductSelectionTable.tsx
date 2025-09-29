@@ -8,6 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { TablePagination } from '@/components/ui/table-pagination'
 
 interface Product {
@@ -200,9 +205,20 @@ export default function ProductSelectionTable({
                             </div>
                             {/* Product Details */}
                             <div className="flex flex-col">
-                              <div className="text-sm font-medium text-gray-900">
-                                {product.product.name}
-                              </div>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div className="text-sm font-medium text-gray-900 cursor-pointer">
+                                    {product.product.name.length > 30
+                                      ? `${product.product.name.substring(0, 30)}...`
+                                      : product.product.name}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs">
+                                    {product.product.name}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
                               {product.product.description && (
                                 <div className="text-sm text-gray-500">
                                   {product.product.description}

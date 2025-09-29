@@ -68,6 +68,7 @@ type ServiceFormData = z.infer<typeof serviceSchema>
 interface SelectedProduct {
   product: ProductWarehouseItem
   product_count: number
+  product_change_price: number
 }
 
 export default function AddService() {
@@ -165,7 +166,11 @@ export default function AddService() {
     const currentCount = selectedProducts[productId]?.product_count || 0
     const newCount = currentCount + change
 
-    if (newCount <= 0) {
+    if (newCount < 0) {
+      return
+    }
+
+    if (newCount === 0) {
       setSelectedProducts((prev) => {
         const updated = { ...prev }
         delete updated[productId]
@@ -177,11 +182,15 @@ export default function AddService() {
     const product = availableProducts.find((p) => p._id === productId)
     if (!product) return
 
+    const existingProduct = selectedProducts[productId]
+
     setSelectedProducts((prev) => ({
       ...prev,
       [productId]: {
         product,
         product_count: newCount,
+        product_change_price:
+          existingProduct?.product_change_price || product.product?.price || 0,
       },
     }))
   }
@@ -192,6 +201,16 @@ export default function AddService() {
       delete updated[productId]
       return updated
     })
+  }
+
+  const updateProductPrice = (productId: string, newPrice: number) => {
+    setSelectedProducts((prev) => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        product_change_price: newPrice,
+      },
+    }))
   }
 
   // Form submission
@@ -211,6 +230,7 @@ export default function AddService() {
       const products = selectedProductsList.map((item) => ({
         product: item.product.product._id,
         product_count: item.product_count,
+        product_change_price: item.product_change_price,
       }))
 
       // Prepare service request according to API spec (without totalAmount)
@@ -256,8 +276,7 @@ export default function AddService() {
   // Calculate total products sum
   const getTotalProductsSum = () => {
     return selectedProductsList.reduce((total, item) => {
-      const product = item.product.product || item.product
-      const price = product?.price || 0
+      const price = item.product_change_price || 0
       return total + item.product_count * price
     }, 0)
   }
@@ -414,9 +433,15 @@ export default function AddService() {
                               : '')
                           }
                           onChange={(e) => {
-                            const formatted = formatNumberInput(e.target.value)
-                            setSalaryDisplay(formatted.display)
-                            field.onChange(formatted.numeric)
+                            const inputValue = e.target.value
+                            if (inputValue === '' || inputValue === '0') {
+                              setSalaryDisplay('')
+                              field.onChange(0)
+                            } else {
+                              const formatted = formatNumberInput(inputValue)
+                              setSalaryDisplay(formatted.display)
+                              field.onChange(formatted.numeric)
+                            }
                           }}
                           onBlur={() => {
                             // Update display to match the numeric value
@@ -806,6 +831,7 @@ export default function AddService() {
         selectedProducts={selectedProductsList}
         onRemoveProduct={removeProduct}
         onUpdateQuantity={updateProductCount}
+        onUpdatePrice={updateProductPrice}
         availableProducts={availableProducts}
       />
     </div>

@@ -3,6 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2, Plus, Minus } from 'lucide-react'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ProductCardProps {
   product: ProductWarehouseItem
@@ -55,9 +60,18 @@ export default function ProductCard({
 
       {/* Product Info */}
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-gray-900 truncate">
-          {product.product.name}
-        </h3>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <h3 className="font-medium text-gray-900 cursor-pointer">
+              {product.product.name.length > 25
+                ? `${product.product.name.substring(0, 25)}...`
+                : product.product.name}
+            </h3>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p className="max-w-xs">{product.product.name}</p>
+          </TooltipContent>
+        </Tooltip>
         <p className="text-sm text-gray-500 mt-1">
           {formatPrice(product.product.price, product.product.currency)}
         </p>
