@@ -71,6 +71,7 @@ type ServiceFormData = z.infer<typeof serviceSchema>
 interface SelectedProduct {
   product: ProductWarehouseItem
   product_count: number
+  product_change_price: number
 }
 
 export default function EditService() {
@@ -237,6 +238,7 @@ export default function EditService() {
             serviceProducts[productData._id] = {
               product: productData,
               product_count: p.product_count,
+              product_change_price: productData.product.price || 0,
             }
           }
         })
@@ -295,16 +297,28 @@ export default function EditService() {
       return
     }
 
-    const product = availableProducts.find((p) => p._id === productId)
-    if (!product) return
+    const currentProduct = selectedProducts[productId]
+    if (!currentProduct) {
+      const product = availableProducts.find((p) => p._id === productId)
+      if (!product) return
 
-    setSelectedProducts((prev) => ({
-      ...prev,
-      [productId]: {
-        product,
-        product_count: newCount,
-      },
-    }))
+      setSelectedProducts((prev) => ({
+        ...prev,
+        [productId]: {
+          product,
+          product_count: newCount,
+          product_change_price: product.product.price || 0,
+        },
+      }))
+    } else {
+      setSelectedProducts((prev) => ({
+        ...prev,
+        [productId]: {
+          ...currentProduct,
+          product_count: newCount,
+        },
+      }))
+    }
   }
 
   const removeProduct = (productId: string) => {

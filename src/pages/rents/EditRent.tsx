@@ -66,6 +66,7 @@ interface SelectedProduct {
   rent_product_count: number
   name: string
   rent_price: number
+  rent_change_price: number
   available_quantity: number
 }
 
@@ -327,6 +328,7 @@ export default function EditRent() {
           rent_product_count: quantity,
           name: productData.product.name,
           rent_price: productData.product_rent_price,
+          rent_change_price: productData.product_rent_price,
           available_quantity: productData.product_active_count,
         }
       })
