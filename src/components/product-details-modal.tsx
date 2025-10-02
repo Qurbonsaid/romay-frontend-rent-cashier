@@ -35,6 +35,7 @@ interface ServiceProduct {
     updated_at: string
   }
   product_count: number
+  product_change_price?: number // O'zgargan narx
   _id: string
 }
 
@@ -90,6 +91,15 @@ const getProductPrice = (
   if ('product_rent_price' in product) {
     return product.product_rent_price
   }
+
+  // ServiceProduct uchun product_change_price ni hisobga olish
+  if (
+    'product_change_price' in product &&
+    product.product_change_price != null
+  ) {
+    return product.product_change_price
+  }
+
   if (
     typeof product.product === 'object' &&
     product.product &&
@@ -263,7 +273,37 @@ export default function ProductDetailsModal({
             <div className="text-center">
               <div className="text-xs text-gray-500 font-medium">NARXI</div>
               <div className="text-lg font-bold text-green-600">
-                {formatPrice(productPrice, productCurrency)}
+                {(() => {
+                  // ServiceProduct uchun o'zgargan narxni hisobga olish
+                  if (
+                    'product_change_price' in product &&
+                    product.product_change_price != null
+                  ) {
+                    const originalPrice =
+                      typeof product.product === 'object' &&
+                      product.product &&
+                      'price' in product.product
+                        ? product.product.price
+                        : 0
+
+                    if (product.product_change_price !== originalPrice) {
+                      return (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-sm text-red-500 line-through">
+                            {formatPrice(originalPrice, productCurrency)}
+                          </span>
+                          <span>
+                            {formatPrice(
+                              product.product_change_price,
+                              productCurrency
+                            )}
+                          </span>
+                        </div>
+                      )
+                    }
+                  }
+                  return formatPrice(productPrice, productCurrency)
+                })()}
               </div>
             </div>
 
@@ -277,7 +317,38 @@ export default function ProductDetailsModal({
             <div className="text-center">
               <div className="text-xs text-gray-500 font-medium">JAMI NARX</div>
               <div className="text-lg font-bold text-orange-600">
-                {formatPrice(productPrice * productCount, productCurrency)}
+                {(() => {
+                  // ServiceProduct uchun o'zgargan narxni hisobga olish
+                  if (
+                    'product_change_price' in product &&
+                    product.product_change_price != null
+                  ) {
+                    const originalPrice =
+                      typeof product.product === 'object' &&
+                      product.product &&
+                      'price' in product.product
+                        ? product.product.price
+                        : 0
+
+                    if (product.product_change_price !== originalPrice) {
+                      const originalTotal = originalPrice * productCount
+                      const newTotal =
+                        product.product_change_price * productCount
+                      return (
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="text-sm text-red-500 line-through">
+                            {formatPrice(originalTotal, productCurrency)}
+                          </span>
+                          <span>{formatPrice(newTotal, productCurrency)}</span>
+                        </div>
+                      )
+                    }
+                  }
+                  return formatPrice(
+                    productPrice * productCount,
+                    productCurrency
+                  )
+                })()}
               </div>
             </div>
 

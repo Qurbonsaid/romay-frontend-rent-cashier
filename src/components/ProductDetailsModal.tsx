@@ -12,6 +12,7 @@ interface ProductDetailsModalProps {
   selectedProduct: RentProduct | null
   isOpen: boolean
   onClose: () => void
+  rentChangePrice?: number // O'zgargan narx (faqat ijara uchun)
 }
 
 const formatPrice = (price: number): string => {
@@ -22,6 +23,7 @@ export default function ProductDetailsModal({
   selectedProduct,
   isOpen,
   onClose,
+  rentChangePrice,
 }: ProductDetailsModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -85,12 +87,35 @@ export default function ProductDetailsModal({
                   KUNLIK NARX
                 </div>
                 <div className="text-xl font-bold text-green-600">
-                  {typeof selectedProduct.rent_product === 'object' &&
-                  selectedProduct.rent_product?.product_rent_price
-                    ? formatPrice(
+                  {(() => {
+                    if (
+                      typeof selectedProduct.rent_product === 'object' &&
+                      selectedProduct.rent_product?.product_rent_price
+                    ) {
+                      const originalPrice =
                         selectedProduct.rent_product.product_rent_price
-                      )
-                    : '0'}
+                      const displayPrice =
+                        rentChangePrice !== undefined
+                          ? rentChangePrice
+                          : originalPrice
+
+                      if (
+                        rentChangePrice !== undefined &&
+                        rentChangePrice !== originalPrice
+                      ) {
+                        return (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-sm text-red-500 line-through">
+                              {formatPrice(originalPrice)}
+                            </span>
+                            <span>{formatPrice(displayPrice)}</span>
+                          </div>
+                        )
+                      }
+                      return formatPrice(displayPrice)
+                    }
+                    return '0'
+                  })()}
                 </div>
                 <div className="text-xs text-gray-400">so'm</div>
               </div>
@@ -100,13 +125,39 @@ export default function ProductDetailsModal({
                   JAMI NARX
                 </div>
                 <div className="text-2xl font-bold text-purple-600">
-                  {typeof selectedProduct.rent_product === 'object' &&
-                  selectedProduct.rent_product?.product_rent_price
-                    ? formatPrice(
-                        selectedProduct.rent_product.product_rent_price *
-                          selectedProduct.rent_product_count
-                      )
-                    : '0'}
+                  {(() => {
+                    if (
+                      typeof selectedProduct.rent_product === 'object' &&
+                      selectedProduct.rent_product?.product_rent_price
+                    ) {
+                      const originalPrice =
+                        selectedProduct.rent_product.product_rent_price
+                      const displayPrice =
+                        rentChangePrice !== undefined
+                          ? rentChangePrice
+                          : originalPrice
+                      const totalPrice =
+                        displayPrice * selectedProduct.rent_product_count
+
+                      if (
+                        rentChangePrice !== undefined &&
+                        rentChangePrice !== originalPrice
+                      ) {
+                        const originalTotal =
+                          originalPrice * selectedProduct.rent_product_count
+                        return (
+                          <div className="flex flex-col items-center gap-1">
+                            <span className="text-lg text-red-500 line-through">
+                              {formatPrice(originalTotal)}
+                            </span>
+                            <span>{formatPrice(totalPrice)}</span>
+                          </div>
+                        )
+                      }
+                      return formatPrice(totalPrice)
+                    }
+                    return '0'
+                  })()}
                 </div>
                 <div className="text-xs text-gray-400">so'm</div>
               </div>

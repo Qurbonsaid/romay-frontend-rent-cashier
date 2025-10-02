@@ -32,7 +32,7 @@ export const AppRouter = () => {
       <Route path={'auth'}>
         <Route path={'login'} element={<LoginPage />} />
       </Route>
-      <Route path="clients">
+      <Route path="clients" element={<PrivateRoute />}>
         <Route index element={<Clients />} />
         <Route path=":id" element={<ClientDetails />} />
       </Route>

@@ -33,3 +33,8 @@ export const clearAuthTokens = (): void => {
 export const isAuthenticated = (): boolean => {
   return getAuthToken() !== null
 }
+
+export const logout = (): void => {
+  clearAuthTokens()
+  window.location.href = '/auth/login'
+}
