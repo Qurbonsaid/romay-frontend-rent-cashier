@@ -13,6 +13,7 @@ export interface Service {
   status: ServiceStatus
   products: Product[]
   payments: any[]
+  comment?: string
   created_at: string
   updated_at: string
 }
@@ -39,6 +40,7 @@ export interface DetailedService {
   status: ServiceStatus
   products: DetailedProduct[]
   payments: any[]
+  comment?: string
   created_at: string
   updated_at: string
 }
@@ -70,6 +72,7 @@ export interface DetailedProduct {
     updated_at?: string
   }
   product_count: number
+  product_change_price: number
   _id: string
 }
 
@@ -87,6 +90,7 @@ export interface AddServiceRequest {
   products: Product[]
   received_date: string
   delivery_date: string
+  comment?: string
 }
 
 export interface AddServiceResponse {
@@ -120,6 +124,7 @@ export interface GetServiceResponse {
 }
 
 export interface UpdateServiceRequest {
+  id: string
   branch: string
   client_name: string
   client_phone: string
@@ -128,6 +133,7 @@ export interface UpdateServiceRequest {
   products: Product[]
   received_date: string
   delivery_date: string
+  comment?: string
 }
 
 export interface UpdateServiceResponse {

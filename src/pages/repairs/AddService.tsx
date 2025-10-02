@@ -33,6 +33,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 
 // Custom Components
 import ProductSelectionTable from '@/components/repairs/ProductSelectionTable'
@@ -61,6 +62,7 @@ const serviceSchema = z.object({
   mechanic_salary: z.number().min(0, "Usta maoshi manfiy bo'lmasligi kerak"),
   received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
   delivery_date: z.date({ message: 'Topshirish sanasi majburiy' }),
+  comment: z.string().optional(),
 })
 
 type ServiceFormData = z.infer<typeof serviceSchema>
@@ -89,6 +91,9 @@ export default function AddService() {
   const [clientSearch, setClientSearch] = useState('')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [salaryDisplay, setSalaryDisplay] = useState('')
+
+  // State for tracking price changes
+  const [hasPriceChanges, setHasPriceChanges] = useState(false)
 
   // Debounce search term for API optimization
   const debouncedProductSearch = useDebounce(productSearch, 300)
@@ -139,6 +144,7 @@ export default function AddService() {
         tomorrow.setDate(tomorrow.getDate() + 1)
         return tomorrow // Tomorrow same time
       })(),
+      comment: '',
     },
   })
 
@@ -204,6 +210,22 @@ export default function AddService() {
   }
 
   const updateProductPrice = (productId: string, newPrice: number) => {
+    const currentProduct = selectedProducts[productId]
+    if (currentProduct) {
+      const originalPrice = currentProduct.product.product?.price || 0
+      const isPriceChanged = newPrice !== originalPrice
+
+      // Check if any product has changed price
+      const anyPriceChanged = Object.values(selectedProducts).some((p) => {
+        if (p.product._id === productId) {
+          return isPriceChanged
+        }
+        return p.product_change_price !== (p.product.product?.price || 0)
+      })
+
+      setHasPriceChanges(anyPriceChanged)
+    }
+
     setSelectedProducts((prev) => ({
       ...prev,
       [productId]: {
@@ -226,6 +248,12 @@ export default function AddService() {
         return
       }
 
+      // Check if any product price has been changed and comment is required
+      if (hasPriceChanges && (!data.comment || data.comment.trim() === '')) {
+        toast.error("Mahsulot narxi o'zgartirilgan! Izoh qoldirish majburiy.")
+        return
+      }
+
       // Prepare products array for API
       const products = selectedProductsList.map((item) => ({
         product: item.product.product._id,
@@ -243,6 +271,8 @@ export default function AddService() {
         products,
         received_date: data.received_date.toISOString(),
         delivery_date: data.delivery_date.toISOString(),
+        ...(data.comment &&
+          data.comment.trim() !== '' && { comment: data.comment }),
       }
 
       await addService(serviceRequest).unwrap()
@@ -684,6 +714,32 @@ export default function AddService() {
                     </FormItem>
                   )}
                 />
+
+                {/* Comment Field - Only shown when prices are changed */}
+                {hasPriceChanges && (
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Izoh <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Mahsulot narxi o'zgartirildi. Sababini yozing..."
+                            className="resize-none border-red-200 focus:border-red-300"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-sm text-red-600">
+                          Mahsulot narxi o'zgartirilgan! Izoh majburiy.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </form>
             </Form>
           </CardContent>

@@ -127,27 +127,52 @@ export default function RepairDetails() {
   // Calculate products summary
   const calculateProductsSummary = () => {
     if (!service?.products)
-      return { totalQuantity: 0, totalCount: 0, totalSum: 0 }
+      return {
+        totalQuantity: 0,
+        totalCount: 0,
+        totalSum: 0,
+        originalTotalSum: 0,
+        hasChangedPrices: false,
+      }
 
     const totalQuantity = service.products.reduce(
       (sum, item) => sum + item.product_count,
       0
     )
     const totalCount = service.products.length
-    const totalSum = service.products.reduce((sum, item) => {
+
+    let totalSum = 0
+    let originalTotalSum = 0
+    let hasChangedPrices = false
+
+    service.products.forEach((item) => {
       // Handle both cases: when product is embedded object or just ID
-      let price = 0
+      let originalPrice = 0
       if (
         typeof item.product === 'object' &&
         item.product &&
         'price' in item.product
       ) {
-        price = item.product.price || 0
+        originalPrice = item.product.price || 0
       }
-      return sum + item.product_count * price
-    }, 0)
 
-    return { totalQuantity, totalCount, totalSum }
+      const changedPrice = item.product_change_price || originalPrice
+
+      if (changedPrice !== originalPrice) {
+        hasChangedPrices = true
+      }
+
+      totalSum += item.product_count * changedPrice
+      originalTotalSum += item.product_count * originalPrice
+    })
+
+    return {
+      totalQuantity,
+      totalCount,
+      totalSum,
+      originalTotalSum,
+      hasChangedPrices,
+    }
   }
 
   const productsSummary = calculateProductsSummary()
@@ -516,9 +541,26 @@ export default function RepairDetails() {
 
             <div className="text-center p-4 bg-gray-50 rounded-lg">
               <div className="text-sm text-gray-500">Mahsulotlar summasi</div>
-              <div className="text-xl font-semibold text-gray-900">
-                {formatCurrency(productsSummary.totalSum)}
-              </div>
+              {(() => {
+                if (productsSummary.hasChangedPrices) {
+                  return (
+                    <div className="flex flex-col gap-1">
+                      <div className="text-red-600 line-through text-sm">
+                        {formatCurrency(productsSummary.originalTotalSum)}
+                      </div>
+                      <div className="text-green-600 font-bold text-lg">
+                        {formatCurrency(productsSummary.totalSum)}
+                      </div>
+                    </div>
+                  )
+                } else {
+                  return (
+                    <div className="text-xl font-semibold text-gray-900">
+                      {formatCurrency(productsSummary.totalSum)}
+                    </div>
+                  )
+                }
+              })()}
             </div>
 
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
@@ -616,6 +658,7 @@ export default function RepairDetails() {
               <div className="text-sm text-gray-600">
                 Jami miqdor: {productsSummary.totalQuantity}
               </div>
+
               <div className="text-lg font-semibold text-gray-900">
                 {formatCurrency(productsSummary.totalSum)}
               </div>
@@ -753,24 +796,64 @@ export default function RepairDetails() {
                             </TableCell>
 
                             {/* Price Column */}
-                            <TableCell className="px-4 py-4 font-medium text-gray-900">
-                              {formatPrice(
-                                typeof productItem.product === 'object' &&
+                            <TableCell className="px-4 py-4">
+                              {(() => {
+                                const originalPrice =
+                                  typeof productItem.product === 'object' &&
                                   productItem.product?.price
-                                  ? productItem.product.price
-                                  : 0
-                              )}
+                                    ? productItem.product.price
+                                    : 0
+                                const changedPrice =
+                                  productItem.product_change_price ||
+                                  originalPrice
+                                const isPriceChanged =
+                                  changedPrice !== originalPrice
+
+                                if (isPriceChanged) {
+                                  return (
+                                    <div className="flex flex-col gap-1">
+                                      {/* Original price - red with strikethrough */}
+                                      <div className="text-red-600 line-through text-sm">
+                                        {formatPrice(originalPrice)}
+                                      </div>
+                                      {/* Changed price - green and slightly larger */}
+                                      <div className="text-green-600 font-semibold text-base">
+                                        {formatPrice(changedPrice)}
+                                      </div>
+                                    </div>
+                                  )
+                                } else {
+                                  return (
+                                    <div className="font-medium text-gray-900">
+                                      {formatPrice(originalPrice)}
+                                    </div>
+                                  )
+                                }
+                              })()}
                             </TableCell>
 
                             {/* Total Column */}
-                            <TableCell className="px-4 py-4 font-semibold text-gray-900">
-                              {formatPrice(
-                                productItem.product_count *
-                                  (typeof productItem.product === 'object' &&
+                            <TableCell className="px-4 py-4">
+                              {(() => {
+                                const originalPrice =
+                                  typeof productItem.product === 'object' &&
                                   productItem.product?.price
                                     ? productItem.product.price
-                                    : 0)
-                              )}
+                                    : 0
+
+                                const changedPrice =
+                                  productItem.product_change_price ||
+                                  originalPrice
+
+                                const changedTotal =
+                                  productItem.product_count * changedPrice
+
+                                return (
+                                  <div className="font-semibold text-gray-900">
+                                    {formatPrice(changedTotal)}
+                                  </div>
+                                )
+                              })()}
                             </TableCell>
                           </TableRow>
                         ))}

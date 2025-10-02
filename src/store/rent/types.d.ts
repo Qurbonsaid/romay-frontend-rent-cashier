@@ -3,6 +3,7 @@ export type RentStatus = 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
 export interface RentProduct {
   rent_product: string | RentProductDetail | null
   rent_product_count: number
+  rent_change_price?: number
   _id: string
 }
 
@@ -54,6 +55,7 @@ export interface Rent {
   status: RentStatus
   rent_products: RentProduct[]
   payments: Payment[]
+  comment?: string
   created_at: string
   updated_at: string
 }
@@ -101,6 +103,7 @@ export interface AddRentRequest {
   }[]
   received_date: string
   delivery_date: string
+  comment?: string
 }
 
 export interface UpdateRentRequest {
@@ -113,6 +116,7 @@ export interface UpdateRentRequest {
   }[]
   received_date?: string
   delivery_date?: string
+  comment?: string
 }
 
 export interface CompleteRentRequest {
