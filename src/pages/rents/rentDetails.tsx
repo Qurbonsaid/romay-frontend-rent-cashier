@@ -1338,6 +1338,7 @@ export default function RentDetails() {
         selectedProduct={selectedProduct}
         isOpen={isProductModalOpen}
         onClose={closeProductModal}
+        rentChangePrice={selectedProduct?.rent_change_price}
       />
 
       {/* Update Delivery Date Modal */}

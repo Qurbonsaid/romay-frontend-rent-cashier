@@ -139,26 +139,7 @@ export const MainLayout = ({ children }: { children: React.ReactNode }) => {
                 {/* <span className="text-sm text-muted-foreground">({role})</span> */}
               </div>
             </div>
-            {/* <div className="flex gap-4">
-              <Calendar22 />
-              <Select
-                onValueChange={(value) => {
-                  setSelectedBranch(value)
-                }}
-                value={selectedBranch}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Barch Filiallar" />
-                </SelectTrigger>
-                <SelectContent>
-                  {branches?.map((branch) => (
-                    <SelectItem key={branch._id} value={branch._id}>
-                      {branch.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div> */}
+            {/* <Calendar22 /> */}
             <div className="flex items-center gap-2 text-sm font-medium text-gray-700 whitespace-nowrap">
               <span>Balance:</span>
               <span className="text-green-600">

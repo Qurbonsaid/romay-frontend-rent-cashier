@@ -226,6 +226,7 @@ export default function EditService() {
 
         // Set selected products with proper structure
         const serviceProducts: { [productId: string]: SelectedProduct } = {}
+        let anyPriceChanged = false
         service.products.forEach((p) => {
           let productData = null
 
@@ -261,10 +262,17 @@ export default function EditService() {
               ...prev,
               [productData._id]: productData.product.price || 1,
             }))
+
+            // Check if price was changed (either in add or edit)
+            const originalPrice = productData.product.price || 1
+            const currentPrice = p.product_change_price || originalPrice
+            if (currentPrice !== originalPrice) {
+              anyPriceChanged = true
+            }
           }
         })
         setSelectedProducts(serviceProducts)
-        // console.log('Selected products set:', serviceProducts) // Debug log
+        setHasPriceChanges(anyPriceChanged)
       }, 100)
     }
   }, [serviceData, clientsData, mechanicsData, productsData, form])

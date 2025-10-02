@@ -215,6 +215,7 @@ export default function EditRent() {
             const productData = allProductsData?.data.find(
               (prod) => prod._id === productId
             )
+
             if (productData) {
               const originalPrice = productData.product_rent_price
               initialOriginalPrices[productId] = originalPrice

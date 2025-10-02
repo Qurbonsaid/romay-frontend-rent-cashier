@@ -1,5 +1,5 @@
 import baseApi from '../api'
-import { setAuthTokens } from '@/utils/auth'
+import { setAuthTokens, clearAuthTokens } from '@/utils/auth'
 import type { LoginRequest, LoginResponse, UserResponse } from './auth'
 
 type ApiError = {
@@ -26,6 +26,7 @@ const authApi = baseApi.injectEndpoints({
           }
         } catch (error: unknown) {
           console.error('Login failed:', (error as ApiError)?.data || error)
+          clearAuthTokens() // Token'larni tozalash
         }
       },
       invalidatesTags: ['user'],
@@ -40,10 +41,19 @@ const authApi = baseApi.injectEndpoints({
         try {
           await queryFulfilled
         } catch (error: unknown) {
+          const errorStatus = (error as ApiError)?.status
           console.error(
             'User fetch failed:',
             (error as ApiError)?.data || error
           )
+
+          // Faqat 401 (Unauthorized) da logout qilish
+          // Network xatoliklarida (fetch error) logout qilmaslik
+          if (errorStatus === 401) {
+            clearAuthTokens()
+            window.location.href = '/auth/login'
+          }
+          // Boshqa xatoliklar (500, network error) - retry imkoniyati
         }
       },
     }),
