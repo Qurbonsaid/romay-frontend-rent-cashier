@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { formatNumberInput, formatCurrency } from '@/utils/numberFormat'
+import { formatCurrency, formatNumberInput } from '@/utils/numberFormat'
 import { useState } from 'react'
 import { Search } from 'lucide-react'
 import {
@@ -9,8 +9,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import type { RentProductDetail } from '@/store/rent/types'
 
-interface SelectedRentProduct {
+interface SelectedProduct {
   rent_product: string
   rent_product_count: number
   name: string
@@ -20,11 +21,11 @@ interface SelectedRentProduct {
 }
 
 interface SelectedProductsListProps {
-  selectedProducts: SelectedRentProduct[]
+  selectedProducts: SelectedProduct[]
   onRemoveProduct?: (productId: string) => void
   onUpdateQuantity?: (productId: string, change: number) => void
   onUpdatePrice?: (productId: string, newPrice: number) => void
-  images?: Record<string, string[]> // product_id -> images mapping
+  availableProducts?: RentProductDetail[] // Changed from RentProduct[] to RentProductDetail[]
 }
 
 export default function SelectedProductsList({
@@ -32,7 +33,7 @@ export default function SelectedProductsList({
   onRemoveProduct,
   onUpdateQuantity,
   onUpdatePrice,
-  images = {},
+  availableProducts = [],
 }: SelectedProductsListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [priceDisplays, setPriceDisplays] = useState<{ [key: string]: string }>(
@@ -48,13 +49,20 @@ export default function SelectedProductsList({
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  // Helper function to get available stock for a product
+  const getAvailableStock = (productId: string) => {
+    const product = availableProducts.find((p) => p._id === productId)
+    return product?.product_active_count || 0
+  }
+
   // Calculate totals
   const totalQuantity = selectedProducts.reduce(
     (sum, item) => sum + item.rent_product_count,
     0
   )
   const totalPrice = selectedProducts.reduce((sum, item) => {
-    return sum + item.rent_change_price * item.rent_product_count
+    const price = item.rent_change_price || 0
+    return sum + price * item.rent_product_count
   }, 0)
 
   return (
@@ -116,17 +124,19 @@ export default function SelectedProductsList({
             </div>
           ) : (
             filteredProducts.map((item, index) => {
-              const originalPrice = item.rent_price
-              const currentPrice = item.rent_change_price
+              const productInfo = availableProducts.find(
+                (p) => p._id === item.rent_product
+              )
+              const originalPrice = item.rent_price || 0
+              const currentPrice = item.rent_change_price || 0
               const itemTotal = currentPrice * item.rent_product_count
-              const productImages = images[item.rent_product] || []
 
               return (
                 <div
                   key={item.rent_product}
                   className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  {/* Left Side: Image, Name, Details */}
+                  {/* Left Side: Image, Name, Category */}
                   <div className="flex items-center gap-3 flex-1">
                     <span className="text-gray-400 text-sm font-medium min-w-[20px]">
                       {index + 1}.
@@ -136,9 +146,7 @@ export default function SelectedProductsList({
                     <div className="flex-shrink-0">
                       <img
                         src={
-                          productImages.length > 0
-                            ? productImages[0]
-                            : '/placeholder.png'
+                          productInfo?.product.images?.[0] || '/placeholder.png'
                         }
                         alt={item.name}
                         className="w-12 h-12 object-cover rounded-lg border shadow-sm"
@@ -160,8 +168,15 @@ export default function SelectedProductsList({
                         </TooltipContent>
                       </Tooltip>
                       <div className="flex items-center gap-2 mt-0.5">
+                        {productInfo?.product.category_id &&
+                          typeof productInfo.product.category_id === 'object' &&
+                          'name' in productInfo.product.category_id && (
+                            <p className="text-sm text-gray-500">
+                              {productInfo.product.category_id.name}
+                            </p>
+                          )}
                         <span className="text-sm text-gray-500">
-                          Mavjud: {item.available_quantity} dona
+                          • Omborda: {getAvailableStock(item.rent_product)} dona
                         </span>
                       </div>
                     </div>
@@ -191,7 +206,8 @@ export default function SelectedProductsList({
                           className="h-8 w-8 p-0"
                           onClick={() => onUpdateQuantity(item.rent_product, 1)}
                           disabled={
-                            item.rent_product_count >= item.available_quantity
+                            item.rent_product_count >=
+                            getAvailableStock(item.rent_product)
                           }
                         >
                           +
@@ -210,7 +226,7 @@ export default function SelectedProductsList({
                             type="text"
                             placeholder="0"
                             value={
-                              item.rent_product in priceDisplays
+                              priceDisplays[item.rent_product] !== undefined
                                 ? priceDisplays[item.rent_product]
                                 : currentPrice > 0
                                   ? formatNumberInput(currentPrice.toString())
@@ -219,43 +235,41 @@ export default function SelectedProductsList({
                             }
                             onChange={(e) => {
                               const inputValue = e.target.value
-
-                              // Agar input bo'sh bo'lsa
                               if (inputValue === '') {
                                 setPriceDisplays((prev) => ({
                                   ...prev,
                                   [item.rent_product]: '',
                                 }))
                                 onUpdatePrice(item.rent_product, 0)
-                                return
-                              }
-
-                              // Faqat raqamlarni olish
-                              const digitsOnly = inputValue.replace(/\D/g, '')
-
-                              // Agar raqam bo'lmasa
-                              if (digitsOnly === '') {
+                              } else {
+                                const formatted = formatNumberInput(inputValue)
                                 setPriceDisplays((prev) => ({
                                   ...prev,
-                                  [item.rent_product]: '',
+                                  [item.rent_product]: formatted.display,
                                 }))
-                                onUpdatePrice(item.rent_product, 0)
-                                return
+                                onUpdatePrice(
+                                  item.rent_product,
+                                  formatted.numeric
+                                )
                               }
-
-                              // Raqamni formatlash
-                              const numericValue = parseInt(digitsOnly, 10)
-                              const formattedDisplay =
-                                formatNumberInput(digitsOnly).display
-
-                              setPriceDisplays((prev) => ({
-                                ...prev,
-                                [item.rent_product]: formattedDisplay,
-                              }))
-                              onUpdatePrice(item.rent_product, numericValue)
+                            }}
+                            onFocus={() => {
+                              // Initialize display value when focused
+                              if (
+                                priceDisplays[item.rent_product] ===
+                                  undefined &&
+                                currentPrice > 0
+                              ) {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.rent_product]: formatNumberInput(
+                                    currentPrice.toString()
+                                  ).display,
+                                }))
+                              }
                             }}
                             onBlur={() => {
-                              // Display ni haqiqiy qiymat bilan sinxronlashtirish
+                              // Update display to match the numeric value
                               if (currentPrice > 0) {
                                 setPriceDisplays((prev) => ({
                                   ...prev,

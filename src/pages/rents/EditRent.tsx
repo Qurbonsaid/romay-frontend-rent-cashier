@@ -33,6 +33,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 
 // Custom Components
 import ProductSelectionTable from '@/components/rentals/ProductSelectionTable'
@@ -57,6 +58,7 @@ const rentSchema = z.object({
   client_name: z.string().min(1, 'Mijoz ismi majburiy'),
   received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
   delivery_date: z.date({ message: 'Qaytarish sanasi majburiy' }),
+  comment: z.string().optional(),
 })
 
 type RentFormData = z.infer<typeof rentSchema>
@@ -80,8 +82,18 @@ export default function EditRent() {
   const [productQuantities, setProductQuantities] = useState<{
     [productId: string]: number
   }>({})
+  const [productPrices, setProductPrices] = useState<{
+    [productId: string]: number
+  }>({})
+
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSearch, setClientSearch] = useState('')
+
+  // State for tracking price changes
+  const [hasPriceChanges, setHasPriceChanges] = useState(false)
+  const [originalPrices, setOriginalPrices] = useState<{
+    [productId: string]: number
+  }>({})
 
   // State for ProductSelectionTable
   const [productSearch, setProductSearch] = useState('')
@@ -118,6 +130,7 @@ export default function EditRent() {
       client_name: '',
       received_date: new Date(),
       delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      comment: '',
     },
   })
 
@@ -173,6 +186,10 @@ export default function EditRent() {
 
         // Set selected products with proper quantities
         const initialQuantities: { [productId: string]: number } = {}
+        const initialPrices: { [productId: string]: number } = {}
+        const initialOriginalPrices: { [productId: string]: number } = {}
+        let anyPriceChanged = false
+
         rent.rent_products?.forEach((p) => {
           let productId = ''
 
@@ -191,9 +208,35 @@ export default function EditRent() {
 
           if (productId && p.rent_product_count > 0) {
             initialQuantities[productId] = p.rent_product_count
+            // Set the price from rent data if available, otherwise use product default
+            initialPrices[productId] = p.rent_change_price || 0
+
+            // Store original prices for comparison - get from available products data
+            const productData = allProductsData?.data.find(
+              (prod) => prod._id === productId
+            )
+            if (productData) {
+              const originalPrice = productData.product_rent_price
+              initialOriginalPrices[productId] = originalPrice
+
+              // Check if price was changed (either in add or edit)
+              const currentPrice = p.rent_change_price || originalPrice
+              if (currentPrice !== originalPrice) {
+                anyPriceChanged = true
+              }
+            }
           }
         })
+
         setProductQuantities(initialQuantities)
+        setProductPrices(initialPrices)
+        setOriginalPrices(initialOriginalPrices)
+        setHasPriceChanges(anyPriceChanged)
+
+        // Set comment if available
+        if (rent.comment) {
+          form.setValue('comment', rent.comment)
+        }
       }, 100)
     }
   }, [rentData, clientsData, allProductsData, form, branch])
@@ -223,13 +266,28 @@ export default function EditRent() {
       // Validate that we have products selected
       const selectedProductsArray = Object.entries(productQuantities)
         .filter(([, quantity]) => quantity > 0)
-        .map(([productId, quantity]) => ({
-          rent_product: productId,
-          rent_product_count: quantity,
-        }))
+        .map(([productId, quantity]) => {
+          const productData = allProductsData?.data.find(
+            (p) => p._id === productId
+          )
+          const defaultPrice = productData?.product_rent_price || 0
+          const changePrice = productPrices[productId] || defaultPrice
+
+          return {
+            rent_product: productId,
+            rent_product_count: quantity,
+            rent_change_price: changePrice > 0 ? changePrice : defaultPrice,
+          }
+        })
 
       if (selectedProductsArray.length === 0) {
         toast.error('Kamida bitta mahsulot tanlash kerak')
+        return
+      }
+
+      // Check if any product price has been changed and comment is required
+      if (hasPriceChanges && (!data.comment || data.comment.trim() === '')) {
+        toast.error("Mahsulot narxi o'zgartirilgan! Izoh qoldirish majburiy.")
         return
       }
 
@@ -250,6 +308,8 @@ export default function EditRent() {
           received_date: format(data.received_date, 'yyyy-MM-dd'),
           delivery_date: format(data.delivery_date, 'yyyy-MM-dd'),
           rent_products: selectedProductsArray,
+          ...(data.comment &&
+            data.comment.trim() !== '' && { comment: data.comment }),
         },
       }
 
@@ -299,17 +359,41 @@ export default function EditRent() {
       delete newQuantities[productId]
       return newQuantities
     })
+    setProductPrices((prev) => {
+      const newPrices = { ...prev }
+      delete newPrices[productId]
+      return newPrices
+    })
   }
 
-  // Get product images for SelectedProductsList
-  const getProductImages = () => {
-    const images: { [productId: string]: string[] } = {}
+  // Function to update product price
+  const updateProductPrice = (productId: string, newPrice: number) => {
+    const product = allProductsData?.data.find((p) => p._id === productId)
+    if (product) {
+      const originalPrice =
+        originalPrices[productId] || product.product_rent_price || 0
+      const isPriceChanged = newPrice !== originalPrice
 
-    allProductsData?.data.forEach((product) => {
-      images[product._id] = product.product.images || []
-    })
+      // Check if any product has changed price
+      const anyPriceChanged = Object.keys(productQuantities).some((id) => {
+        if (id === productId) {
+          return isPriceChanged
+        }
+        const currentProduct = allProductsData?.data.find((p) => p._id === id)
+        const currentPrice =
+          productPrices[id] || currentProduct?.product_rent_price || 0
+        const currentOriginalPrice =
+          originalPrices[id] || currentProduct?.product_rent_price || 0
+        return currentPrice !== currentOriginalPrice
+      })
 
-    return images
+      setHasPriceChanges(anyPriceChanged)
+    }
+
+    setProductPrices((prev) => ({
+      ...prev,
+      [productId]: newPrice,
+    }))
   }
 
   // Get selected products data for display
@@ -328,7 +412,8 @@ export default function EditRent() {
           rent_product_count: quantity,
           name: productData.product.name,
           rent_price: productData.product_rent_price,
-          rent_change_price: productData.product_rent_price,
+          rent_change_price:
+            productPrices[productId] || productData.product_rent_price,
           available_quantity: productData.product_active_count,
         }
       })
@@ -565,6 +650,32 @@ export default function EditRent() {
                     </FormItem>
                   )}
                 />
+
+                {/* Comment Field - Only shown when prices are changed */}
+                {hasPriceChanges && (
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Izoh <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Mahsulot narxi o'zgartirildi. Sababini yozing..."
+                            className="resize-none border-red-200 focus:border-red-300"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-sm text-red-600">
+                          Mahsulot narxi o'zgartirilgan! Izoh majburiy.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </form>
             </Form>
           </CardContent>
@@ -683,7 +794,8 @@ export default function EditRent() {
         selectedProducts={getSelectedProducts()}
         onRemoveProduct={removeProduct}
         onUpdateQuantity={updateProductCount}
-        images={getProductImages()}
+        onUpdatePrice={updateProductPrice}
+        availableProducts={allProductsData?.data || []}
       />
     </div>
   )

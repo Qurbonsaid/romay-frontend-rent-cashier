@@ -305,6 +305,23 @@ export default function RentDetails() {
     return { totalQuantity, totalCount, totalSum }
   }
 
+  // Calculate actual total with changed prices
+  const calculateActualTotal = () => {
+    if (!rent?.rent_products) return 0
+
+    return rent.rent_products.reduce((sum, item) => {
+      if (
+        typeof item.rent_product === 'object' &&
+        item.rent_product?.product_rent_price
+      ) {
+        const price =
+          item.rent_change_price || item.rent_product.product_rent_price
+        return sum + price * item.rent_product_count
+      }
+      return sum
+    }, 0)
+  }
+
   // Payment handling functions
   const handlePaymentChange = (type: keyof typeof payments, value: string) => {
     // Remove all non-digit characters for parsing
@@ -407,7 +424,7 @@ export default function RentDetails() {
 
   // Payment calculation variables
   const totalPayment = calculateTotalPayment()
-  const rentTotal = rent?.total_rent_price || 0
+  const rentTotal = calculateActualTotal() || 0
   const remainingAmount = Math.max(0, rentTotal - totalPayment)
   const isOverpaid = totalPayment > rentTotal && rentTotal > 0
   const isZeroPayment = totalPayment === 0
@@ -605,7 +622,7 @@ export default function RentDetails() {
               <div>
                 <div className="text-sm text-gray-500">Jami ijara narxi</div>
                 <div className="font-medium">
-                  {formatPrice(rent.total_rent_price)} so'm
+                  {formatPrice(calculateActualTotal())} so'm
                 </div>
               </div>
             </div>
@@ -663,8 +680,30 @@ export default function RentDetails() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-sm text-gray-500">Jami ijara narxi</div>
-              <div className="text-2xl font-bold text-green-600">
-                {formatPrice(rent.total_rent_price)} so'm
+              <div className="flex items-center justify-center gap-3">
+                {(() => {
+                  const actualTotal = calculateActualTotal()
+                  const originalTotal = rent.total_rent_price
+
+                  if (actualTotal !== originalTotal) {
+                    return (
+                      <>
+                        <div className="text-lg text-red-500 line-through">
+                          {formatPrice(originalTotal)} so'm
+                        </div>
+                        <div className="text-2xl font-bold text-green-600">
+                          {formatPrice(actualTotal)} so'm
+                        </div>
+                      </>
+                    )
+                  } else {
+                    return (
+                      <div className="text-2xl font-bold text-green-600">
+                        {formatPrice(actualTotal)} so'm
+                      </div>
+                    )
+                  }
+                })()}
               </div>
             </div>
 
@@ -678,7 +717,7 @@ export default function RentDetails() {
             <div className="text-center p-4 bg-orange-50 rounded-lg">
               <div className="text-sm text-gray-500">Qarz</div>
               <div className="text-xl font-semibold text-orange-600">
-                {formatPrice(Math.max(0, rent.total_rent_price - totalPaid))}{' '}
+                {formatPrice(Math.max(0, calculateActualTotal() - totalPaid))}{' '}
                 so'm
               </div>
             </div>
@@ -688,12 +727,12 @@ export default function RentDetails() {
               <div className="mt-2">
                 <Badge
                   className={
-                    totalPaid >= rent.total_rent_price
+                    totalPaid >= calculateActualTotal()
                       ? 'bg-green-100 text-green-800'
                       : 'bg-yellow-100 text-yellow-800'
                   }
                 >
-                  {totalPaid >= rent.total_rent_price
+                  {totalPaid >= calculateActualTotal()
                     ? "To'liq to'langan"
                     : "Qisman to'langan"}
                 </Badge>
@@ -940,23 +979,57 @@ export default function RentDetails() {
                             {/* Price Column */}
                             <TableCell className="px-4 py-2 font-medium text-gray-900 text-sm">
                               {typeof rentProduct.rent_product === 'object' &&
-                              rentProduct.rent_product?.product_rent_price
-                                ? formatPrice(
-                                    rentProduct.rent_product.product_rent_price
-                                  )
-                                : "Narx yo'q"}
+                              rentProduct.rent_product?.product_rent_price ? (
+                                <div className="flex items-center gap-2">
+                                  {rentProduct.rent_change_price &&
+                                  rentProduct.rent_change_price !==
+                                    rentProduct.rent_product
+                                      .product_rent_price ? (
+                                    <>
+                                      {/* Asl narx - chizilgan, qizil, kichik */}
+                                      <span className="text-xs text-red-500 line-through">
+                                        {formatPrice(
+                                          rentProduct.rent_product
+                                            .product_rent_price
+                                        )}
+                                      </span>
+                                      {/* Yangi narx - yashil, katta */}
+                                      <span className="text-sm font-bold text-green-600">
+                                        {formatPrice(
+                                          rentProduct.rent_change_price
+                                        )}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    /* Odatiy narx */
+                                    <span>
+                                      {formatPrice(
+                                        rentProduct.rent_product
+                                          .product_rent_price
+                                      )}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                "Narx yo'q"
+                              )}
                             </TableCell>
 
                             {/* Total Column */}
                             <TableCell className="px-4 py-2 font-semibold text-gray-900 text-sm">
                               {typeof rentProduct.rent_product === 'object' &&
-                              rentProduct.rent_product?.product_rent_price
-                                ? formatPrice(
-                                    rentProduct.rent_product
-                                      .product_rent_price *
+                              rentProduct.rent_product?.product_rent_price ? (
+                                <span className="text-base">
+                                  {formatPrice(
+                                    (rentProduct.rent_change_price ||
+                                      rentProduct.rent_product
+                                        .product_rent_price) *
                                       (rentProduct.rent_product_count || 0)
-                                  )
-                                : '—'}
+                                  )}
+                                </span>
+                              ) : (
+                                '—'
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}

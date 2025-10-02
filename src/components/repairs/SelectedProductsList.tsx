@@ -231,15 +231,16 @@ export default function SelectedProductsList({
                             type="text"
                             placeholder="0"
                             value={
-                              priceDisplays[item.product._id] ||
-                              (currentPrice > 0
-                                ? formatNumberInput(currentPrice.toString())
-                                    .display
-                                : '')
+                              priceDisplays[item.product._id] !== undefined
+                                ? priceDisplays[item.product._id]
+                                : currentPrice > 0
+                                  ? formatNumberInput(currentPrice.toString())
+                                      .display
+                                  : ''
                             }
                             onChange={(e) => {
                               const inputValue = e.target.value
-                              if (inputValue === '' || inputValue === '0') {
+                              if (inputValue === '') {
                                 setPriceDisplays((prev) => ({
                                   ...prev,
                                   [item.product._id]: '',
@@ -255,6 +256,20 @@ export default function SelectedProductsList({
                                   item.product._id,
                                   formatted.numeric
                                 )
+                              }
+                            }}
+                            onFocus={() => {
+                              // Initialize display value when focused
+                              if (
+                                priceDisplays[item.product._id] === undefined &&
+                                currentPrice > 0
+                              ) {
+                                setPriceDisplays((prev) => ({
+                                  ...prev,
+                                  [item.product._id]: formatNumberInput(
+                                    currentPrice.toString()
+                                  ).display,
+                                }))
                               }
                             }}
                             onBlur={() => {

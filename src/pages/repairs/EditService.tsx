@@ -33,6 +33,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 
 // Custom Components
 import ProductSelectionTable from '@/components/repairs/ProductSelectionTable'
@@ -64,6 +65,7 @@ const serviceSchema = z.object({
   mechanic_salary: z.number().min(0, "Usta maoshi manfiy bo'lmasligi kerak"),
   received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
   delivery_date: z.date({ message: 'Topshirish sanasi majburiy' }),
+  comment: z.string().optional(),
 })
 
 type ServiceFormData = z.infer<typeof serviceSchema>
@@ -93,6 +95,12 @@ export default function EditService() {
   const [clientSearch, setClientSearch] = useState('')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [salaryDisplay, setSalaryDisplay] = useState('')
+
+  // State for tracking price changes
+  const [hasPriceChanges, setHasPriceChanges] = useState(false)
+  const [originalProducts, setOriginalProducts] = useState<{
+    [productId: string]: number
+  }>({})
 
   // Debounce search term for API optimization
   const debouncedProductSearch = useDebounce(productSearch, 300)
@@ -147,6 +155,7 @@ export default function EditService() {
       mechanic_salary: 0,
       received_date: new Date(), // Set today's date as default
       delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000), // Tomorrow as default delivery
+      comment: '',
     },
   })
 
@@ -210,6 +219,11 @@ export default function EditService() {
         form.setValue('received_date', new Date(service.received_date))
         form.setValue('delivery_date', new Date(service.delivery_date))
 
+        // Set comment if available
+        if (service.comment) {
+          form.setValue('comment', service.comment)
+        }
+
         // Set selected products with proper structure
         const serviceProducts: { [productId: string]: SelectedProduct } = {}
         service.products.forEach((p) => {
@@ -238,8 +252,15 @@ export default function EditService() {
             serviceProducts[productData._id] = {
               product: productData,
               product_count: p.product_count,
-              product_change_price: productData.product.price || 0,
+              product_change_price:
+                p.product_change_price || productData.product.price || 1,
             }
+
+            // Store original prices for comparison (use original product price, not changed price)
+            setOriginalProducts((prev) => ({
+              ...prev,
+              [productData._id]: productData.product.price || 1,
+            }))
           }
         })
         setSelectedProducts(serviceProducts)
@@ -302,12 +323,18 @@ export default function EditService() {
       const product = availableProducts.find((p) => p._id === productId)
       if (!product) return
 
+      // Store original price when adding new product
+      setOriginalProducts((prev) => ({
+        ...prev,
+        [productId]: product.product.price || 1,
+      }))
+
       setSelectedProducts((prev) => ({
         ...prev,
         [productId]: {
           product,
           product_count: newCount,
-          product_change_price: product.product.price || 0,
+          product_change_price: product.product.price || 1,
         },
       }))
     } else {
@@ -325,7 +352,63 @@ export default function EditService() {
     setSelectedProducts((prev) => {
       const updated = { ...prev }
       delete updated[productId]
+
+      // Check if any remaining product has changed price
+      const anyPriceChanged = Object.keys(updated).some((id) => {
+        const currentProduct = updated[id]
+        const currentOriginalPrice =
+          originalProducts[id] || currentProduct.product.product.price || 0
+        return currentProduct.product_change_price !== currentOriginalPrice
+      })
+
+      setHasPriceChanges(anyPriceChanged)
+
       return updated
+    })
+
+    setOriginalProducts((prev) => {
+      const updated = { ...prev }
+      delete updated[productId]
+      return updated
+    })
+  }
+
+  const updateProductPrice = (productId: string, newPrice: number) => {
+    const product = productsData?.data.find((p) => p._id === productId)
+    if (product) {
+      const originalPrice =
+        originalProducts[productId] || product.product.price || 0
+      const isPriceChanged = newPrice !== originalPrice
+
+      // Check if any product has changed price
+      const anyPriceChanged = Object.keys(selectedProducts).some((id) => {
+        if (id === productId) {
+          return isPriceChanged
+        }
+        const currentProduct = selectedProducts[id]
+        const currentOriginalPrice =
+          originalProducts[id] || currentProduct.product.product.price || 0
+        return currentProduct.product_change_price !== currentOriginalPrice
+      })
+
+      setHasPriceChanges(anyPriceChanged)
+    }
+
+    setSelectedProducts((prev) => {
+      const currentProduct = prev[productId]
+      if (!currentProduct) return prev
+
+      // Ensure price is positive, fallback to original price if 0 or negative
+      const validPrice =
+        newPrice > 0 ? newPrice : currentProduct.product.product.price || 1
+
+      return {
+        ...prev,
+        [productId]: {
+          ...currentProduct,
+          product_change_price: validPrice,
+        },
+      }
     })
   }
 
@@ -342,14 +425,25 @@ export default function EditService() {
         return
       }
 
+      // Check if any product price has been changed and comment is required
+      if (hasPriceChanges && (!data.comment || data.comment.trim() === '')) {
+        toast.error("Mahsulot narxi o'zgartirilgan! Izoh qoldirish majburiy.")
+        return
+      }
+
       // Prepare products array for API
       const products = selectedProductsList.map((item) => ({
         product: item.product.product._id,
         product_count: item.product_count,
+        product_change_price:
+          item.product_change_price > 0
+            ? item.product_change_price
+            : item.product.product.price || 1,
       }))
 
       // Prepare service request according to API spec
       const serviceRequest: UpdateServiceRequest = {
+        id: id!, // Service ID from URL params
         branch: branch._id,
         client_name: selectedClient.username,
         client_phone: selectedClient.phone,
@@ -358,6 +452,8 @@ export default function EditService() {
         products,
         received_date: data.received_date.toISOString(),
         delivery_date: data.delivery_date.toISOString(),
+        ...(data.comment &&
+          data.comment.trim() !== '' && { comment: data.comment }),
       }
 
       await updateService({ id: id!, data: serviceRequest }).unwrap()
@@ -597,9 +693,9 @@ export default function EditService() {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, 'dd/MM/yyyy HH:mm')
                               ) : (
-                                <span>Sanani tanlang</span>
+                                <span>Sana va vaqtni tanlang</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -609,10 +705,81 @@ export default function EditService() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              if (date) {
+                                // Keep existing time if available, otherwise set current time
+                                const existingTime = field.value || new Date()
+                                const newDate = new Date(date)
+                                newDate.setHours(existingTime.getHours())
+                                newDate.setMinutes(existingTime.getMinutes())
+                                field.onChange(newDate)
+                              }
+                            }}
                             disabled={(date) => date < new Date('1900-01-01')}
                             initialFocus
                           />
+                          <div className="p-3 border-t">
+                            <div className="flex items-center space-x-2">
+                              <label className="text-sm font-medium">
+                                Vaqt:
+                              </label>
+                              <div className="flex space-x-1">
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'HH') : ''
+                                  }
+                                  onValueChange={(hour) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setHours(parseInt(hour))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-sm self-center">:</span>
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'mm') : ''
+                                  }
+                                  onValueChange={(minute) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setMinutes(parseInt(minute))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 60 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
@@ -638,9 +805,9 @@ export default function EditService() {
                               )}
                             >
                               {field.value ? (
-                                format(field.value, 'PPP')
+                                format(field.value, 'dd/MM/yyyy HH:mm')
                               ) : (
-                                <span>Sanani tanlang</span>
+                                <span>Sana va vaqtni tanlang</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -650,16 +817,113 @@ export default function EditService() {
                           <Calendar
                             mode="single"
                             selected={field.value}
-                            onSelect={field.onChange}
+                            onSelect={(date) => {
+                              if (date) {
+                                // Keep existing time if available, otherwise set current time
+                                const existingTime = field.value || new Date()
+                                const newDate = new Date(date)
+                                newDate.setHours(existingTime.getHours())
+                                newDate.setMinutes(existingTime.getMinutes())
+                                field.onChange(newDate)
+                              }
+                            }}
                             disabled={(date) => date < new Date('1900-01-01')}
                             initialFocus
                           />
+                          <div className="p-3 border-t">
+                            <div className="flex items-center space-x-2">
+                              <label className="text-sm font-medium">
+                                Vaqt:
+                              </label>
+                              <div className="flex space-x-1">
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'HH') : ''
+                                  }
+                                  onValueChange={(hour) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setHours(parseInt(hour))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 24 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <span className="text-sm self-center">:</span>
+                                <Select
+                                  value={
+                                    field.value ? format(field.value, 'mm') : ''
+                                  }
+                                  onValueChange={(minute) => {
+                                    if (field.value) {
+                                      const newDate = new Date(field.value)
+                                      newDate.setMinutes(parseInt(minute))
+                                      field.onChange(newDate)
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="w-20 h-8">
+                                    <SelectValue placeholder="--" />
+                                  </SelectTrigger>
+                                  <SelectContent className="max-h-48 overflow-y-auto">
+                                    {Array.from({ length: 60 }, (_, i) => (
+                                      <SelectItem
+                                        key={i}
+                                        value={i.toString().padStart(2, '0')}
+                                      >
+                                        {i.toString().padStart(2, '0')}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
                         </PopoverContent>
                       </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
+                {/* Comment Field - Only shown when prices are changed */}
+                {hasPriceChanges && (
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Izoh <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Mahsulot narxi o'zgartirildi. Sababini yozing..."
+                            className="resize-none border-red-200 focus:border-red-300"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-sm text-red-600">
+                          Mahsulot narxi o'zgartirilgan! Izoh majburiy.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </form>
             </Form>
           </CardContent>
@@ -807,6 +1071,7 @@ export default function EditService() {
         selectedProducts={selectedProductsList}
         onRemoveProduct={removeProduct}
         onUpdateQuantity={updateProductCount}
+        onUpdatePrice={updateProductPrice}
         availableProducts={availableProducts}
       />
     </div>

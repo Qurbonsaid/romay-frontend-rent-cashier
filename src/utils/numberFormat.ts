@@ -53,7 +53,7 @@ export const formatNumberInput = (
   const digitsOnly = value.replace(/\D/g, '')
 
   // If empty, return empty display and 0 numeric
-  if (digitsOnly === '' || digitsOnly === '0') {
+  if (digitsOnly === '') {
     return { display: '', numeric: 0 }
   }
 

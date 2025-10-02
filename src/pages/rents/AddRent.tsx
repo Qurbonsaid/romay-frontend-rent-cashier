@@ -33,6 +33,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Textarea } from '@/components/ui/textarea'
 
 // Custom Components
 import ProductSelectionTable from '@/components/rentals/ProductSelectionTable'
@@ -57,6 +58,7 @@ const rentSchema = z.object({
   client_name: z.string().min(1, 'Mijoz ismi majburiy'),
   received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
   delivery_date: z.date({ message: 'Qaytarish sanasi majburiy' }),
+  comment: z.string().optional(),
 })
 
 type RentFormData = z.infer<typeof rentSchema>
@@ -85,6 +87,9 @@ export default function AddRent() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSearch, setClientSearch] = useState('')
 
+  // State for tracking price changes
+  const [hasPriceChanges, setHasPriceChanges] = useState(false)
+
   // State for ProductSelectionTable
   const [productSearch, setProductSearch] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
@@ -108,6 +113,7 @@ export default function AddRent() {
       client_name: '',
       received_date: new Date(),
       delivery_date: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      comment: '',
     },
   })
 
@@ -179,6 +185,19 @@ export default function AddRent() {
         delete updated[productId]
         return updated
       })
+
+      // Check if there are still any price changes after removing this product
+      const remainingProductIds = Object.keys(productQuantities).filter(
+        (id) => id !== productId
+      )
+      const anyPriceChanged = remainingProductIds.some((id) => {
+        const product = rentProductsData?.data.find((p) => p._id === id)
+        const currentPrice = productPrices[id]
+        const originalPrice = product?.product_rent_price || 0
+        return currentPrice && currentPrice !== originalPrice
+      })
+      setHasPriceChanges(anyPriceChanged)
+
       return
     }
 
@@ -223,15 +242,6 @@ export default function AddRent() {
 
   const selectedProductsList = convertToSelectedProducts()
 
-  // Get product images for SelectedProductsList
-  const getProductImages = (): Record<string, string[]> => {
-    const images: Record<string, string[]> = {}
-    rentProductsData?.data.forEach((product) => {
-      images[product._id] = product.product.images || []
-    })
-    return images
-  }
-
   // Function to remove product (for SelectedProductsList)
   const removeProduct = (productId: string) => {
     setProductQuantities((prev) => {
@@ -244,10 +254,41 @@ export default function AddRent() {
       delete updated[productId]
       return updated
     })
+
+    // Check if there are still any price changes after removing this product
+    const remainingProductIds = Object.keys(productQuantities).filter(
+      (id) => id !== productId
+    )
+    const anyPriceChanged = remainingProductIds.some((id) => {
+      const product = rentProductsData?.data.find((p) => p._id === id)
+      const currentPrice = productPrices[id]
+      const originalPrice = product?.product_rent_price || 0
+      return currentPrice && currentPrice !== originalPrice
+    })
+    setHasPriceChanges(anyPriceChanged)
   }
 
   // Function to update product price
   const updateProductPrice = (productId: string, newPrice: number) => {
+    const product = rentProductsData?.data.find((p) => p._id === productId)
+    if (product) {
+      const originalPrice = product.product_rent_price || 0
+      const isPriceChanged = newPrice !== originalPrice
+
+      // Check if any product has changed price
+      const anyPriceChanged = Object.keys(productQuantities).some((id) => {
+        if (id === productId) {
+          return isPriceChanged
+        }
+        const currentProduct = rentProductsData?.data.find((p) => p._id === id)
+        const currentPrice = productPrices[id]
+        const currentOriginalPrice = currentProduct?.product_rent_price || 0
+        return currentPrice !== currentOriginalPrice
+      })
+
+      setHasPriceChanges(anyPriceChanged)
+    }
+
     setProductPrices((prev) => ({
       ...prev,
       [productId]: newPrice,
@@ -263,6 +304,12 @@ export default function AddRent() {
 
       if (selectedProductsList.length === 0) {
         toast.error('Hech qanday mahsulot tanlanmagan')
+        return
+      }
+
+      // Check if any product price has been changed and comment is required
+      if (hasPriceChanges && (!data.comment || data.comment.trim() === '')) {
+        toast.error("Mahsulot narxi o'zgartirilgan! Izoh qoldirish majburiy.")
         return
       }
 
@@ -282,6 +329,8 @@ export default function AddRent() {
         rent_products: rentProducts,
         received_date: data.received_date.toISOString(),
         delivery_date: data.delivery_date.toISOString(),
+        ...(data.comment &&
+          data.comment.trim() !== '' && { comment: data.comment }),
       }).unwrap()
 
       toast.success("Ijara muvaffaqiyatli qo'shildi")
@@ -493,6 +542,32 @@ export default function AddRent() {
                     </FormItem>
                   )}
                 />
+
+                {/* Comment Field - Only shown when prices are changed */}
+                {hasPriceChanges && (
+                  <FormField
+                    control={form.control}
+                    name="comment"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Izoh <span className="text-red-500">*</span>
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Mahsulot narxi o'zgartirildi. Sababini yozing..."
+                            className="resize-none border-red-200 focus:border-red-300"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-sm text-red-600">
+                          Mahsulot narxi o'zgartirilgan! Izoh majburiy.
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </form>
             </Form>
           </CardContent>
@@ -612,7 +687,7 @@ export default function AddRent() {
         onRemoveProduct={removeProduct}
         onUpdateQuantity={updateProductCount}
         onUpdatePrice={updateProductPrice}
-        images={getProductImages()}
+        availableProducts={availableProducts as any}
       />
     </div>
   )
