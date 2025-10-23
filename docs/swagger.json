@@ -11,7 +11,7 @@
         "url": "http://localhost:8787"
       },
       {
-        "url": "https://romay.edumansim.uz"
+        "url": "https://api.romayonline.uz"
       }
     ],
     "components": {
@@ -193,8 +193,157 @@
       },
       "/sales/add": {
         "post": {
-          "summary": "Create a new sale for [sale_cashier]",
           "tags": ["Sales"],
+          "summary": "Create a new sale",
+          "description": "Branch, cashier, client, items va to'lov summasiga qarab yangi sotuvni yaratadi.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "branch_id",
+                    "cashier_id",
+                    "items",
+                    "paid_amount"
+                  ],
+                  "properties": {
+                    "branch_id": {
+                      "type": "string",
+                      "format": "objectId",
+                      "example": "64f1a0fcefd2bb1a0b22b9f5",
+                      "description": "Branch ID (Mongo ObjectID)"
+                    },
+                    "cashier_id": {
+                      "type": "string",
+                      "format": "objectId",
+                      "example": "64f1a1b2efd2bb1a0b22b9f7",
+                      "description": "Cashier ID (Mongo ObjectID)"
+                    },
+                    "sales_assistant_id": {
+                      "type": "string",
+                      "format": "objectId",
+                      "example": "64f1a1b2efd2bb1a0b22b9f7",
+                      "description": "Sales Assistant ID (Mongo ObjectID)"
+                    },
+                    "client_id": {
+                      "type": "string",
+                      "format": "objectId",
+                      "nullable": true,
+                      "example": "64f1a2c5efd2bb1a0b22b9f9",
+                      "description": "Client ID (Mongo ObjectID, optional)"
+                    },
+                    "items": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "required": ["product_id", "quantity"],
+                        "properties": {
+                          "product_id": {
+                            "type": "string",
+                            "format": "objectId",
+                            "example": "64f1a3f5efd2bb1a0b22b9fb",
+                            "description": "Product ID (Mongo ObjectID)"
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "example": 5,
+                            "minimum": 1,
+                            "description": "Quantity of the product"
+                          },
+                          "price": {
+                            "type": "number",
+                            "example": 100.5,
+                            "minimum": 0,
+                            "description": "Price of the product"
+                          }
+                        }
+                      }
+                    },
+                    "paid_amount": {
+                      "type": "number",
+                      "example": 50000,
+                      "description": "To'langan summa"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "example": "Customer requested a discount.",
+                      "description": "Optional comment for the sale"
+                    }
+                  }
+                },
+                "example": {
+                  "branch_id": "64f1a0fcefd2bb1a0b22b9f5",
+                  "cashier_id": "64f1a1b2efd2bb1a0b22b9f7",
+                  "client_id": "64f1a2c5efd2bb1a0b22b9f9",
+                  "sales_assistant_id": "64f1a2c5efd2bb1a0b22b9f9",
+                  "items": [
+                    {
+                      "product_id": "64f1a3f5efd2bb1a0b22b9fb",
+                      "quantity": 2,
+                      "price": 100.5
+                    },
+                    {
+                      "product_id": "64f1a4f7efd2bb1a0b22b9fd",
+                      "quantity": 1,
+                      "price": 200
+                    }
+                  ],
+                  "paid_amount": 70000,
+                  "comment": "Customer requested a discount."
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Sale created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Sale created successfully"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request (Masalan paid_amount > total_amount yoki noto'g'ri branch)"
+            },
+            "404": {
+              "description": "Branch / Cashier / Client / Product topilmadi"
+            }
+          }
+        }
+      },
+      "/sales/update/{id}": {
+        "put": {
+          "tags": ["Sales"],
+          "summary": "Update an existing sale",
+          "description": "Mavjud sotuvni yangilaydi. Client, items, status va paid_amount ni yangilash imkonini beradi.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "format": "objectId"
+              },
+              "description": "Sale ID (Mongo ObjectID)"
+            }
+          ],
           "requestBody": {
             "required": true,
             "content": {
@@ -202,54 +351,76 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "branch_id": {
-                      "type": "string"
-                    },
-                    "cashier_id": {
-                      "type": "string"
-                    },
                     "client_id": {
-                      "type": "string"
+                      "type": "string",
+                      "format": "objectId",
+                      "nullable": true,
+                      "description": "Client ID (Mongo ObjectID, optional)"
+                    },
+                    "sales_assistant_id": {
+                      "type": "string",
+                      "format": "objectId",
+                      "nullable": true,
+                      "description": "Sales Assistant ID (Mongo ObjectID, optional)"
+                    },
+                    "paid_amount": {
+                      "type": "number",
+                      "example": 70000,
+                      "description": "To'langan summa"
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "Yangilangan mahsulotlar ro‘yxati",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "required": ["product_id", "quantity"],
+                        "properties": {
+                          "product_id": {
+                            "type": "string",
+                            "format": "objectId",
+                            "example": "64f1a3f5efd2bb1a0b22b9fb",
+                            "description": "Product ID (Mongo ObjectID)"
+                          },
+                          "quantity": {
+                            "type": "integer",
+                            "example": 3,
+                            "minimum": 1,
+                            "description": "Quantity of the product"
+                          },
+                          "price": {
+                            "type": "number",
+                            "example": 100.5,
+                            "minimum": 0,
+                            "description": "Price of the product"
+                          }
+                        }
+                      }
+                    },
+                    "comment": {
+                      "type": "string",
+                      "example": "Customer requested a discount.",
+                      "description": "Optional comment for the sale"
                     }
                   },
-                  "required": ["branch_id", "cashier_id"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Sale created successfully"
-            },
-            "404": {
-              "description": "Branch, cashier or client not found"
-            }
-          }
-        }
-      },
-      "/sales/update-client/{id}": {
-        "patch": {
-          "summary": "Update client for a sale for [sale_cashier]",
-          "tags": ["Sales"],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "client_id": {
-                      "type": "string"
-                    }
+                  "example": {
+                    "client_id": "64f1a2c5efd2bb1a0b22b9f9",
+                    "sales_assistant_id": "64f1a2c5efd2bb1a0b22b9f9",
+                    "status": "IN_PROGRESS",
+                    "paid_amount": 70000,
+                    "items": [
+                      {
+                        "product_id": "64f1a3f5efd2bb1a0b22b9fb",
+                        "quantity": 2,
+                        "price": 100.5
+                      },
+                      {
+                        "product_id": "64f1a4f7efd2bb1a0b22b9fd",
+                        "quantity": 1,
+                        "price": 200
+                      }
+                    ],
+                    "comment": "Customer requested a discount."
                   }
                 }
               }
@@ -257,83 +428,30 @@
           },
           "responses": {
             "200": {
-              "description": "Client updated in sale successfully"
-            },
-            "400": {
-              "description": "Sale already paid or canceled"
-            },
-            "404": {
-              "description": "Sale or client not found"
-            }
-          }
-        }
-      },
-      "/sales/cancel-status/{id}": {
-        "patch": {
-          "summary": "Cancel a sale for [sale_cashier]",
-          "tags": ["Sales"],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Sale canceled successfully"
-            },
-            "400": {
-              "description": "Sale already canceled or paid"
-            },
-            "404": {
-              "description": "Sale not found"
-            }
-          }
-        }
-      },
-      "/sales/add-payment/{id}": {
-        "patch": {
-          "summary": "Add payment to a sale for [sale_cashier]",
-          "tags": ["Payments"],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "amount": {
-                      "type": "number"
+              "description": "Sale updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Sale updated successfully"
+                      }
                     }
-                  },
-                  "required": ["amount"]
+                  }
                 }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Payment added successfully"
             },
             "400": {
-              "description": "Payment exceeds total or sale not payable"
+              "description": "Bad Request (masalan paid_amount > totalAmount yoki branch noto‘g‘ri bo‘lsa)"
             },
             "404": {
-              "description": "Sale not found"
+              "description": "Sale / Client / Product topilmadi"
             }
           }
         }
@@ -344,6 +462,13 @@
           "tags": ["Sales"],
           "parameters": [
             {
+              "name": "search",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
               "name": "cashier_id",
               "in": "query",
               "schema": {
@@ -352,6 +477,13 @@
             },
             {
               "name": "client_id",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "sales_assistant_id",
               "in": "query",
               "schema": {
                 "type": "string"
@@ -453,141 +585,6 @@
             },
             "404": {
               "description": "Sale not found"
-            }
-          }
-        }
-      },
-      "/sales/add-item/{id}": {
-        "post": {
-          "summary": "Add item to a sale for [sale_cashier]",
-          "tags": ["Items"],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "product_id": {
-                      "type": "string"
-                    },
-                    "quantity": {
-                      "type": "integer"
-                    }
-                  },
-                  "required": ["product_id", "quantity"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Item added successfully"
-            },
-            "400": {
-              "description": "Invalid stock or item already exists"
-            },
-            "404": {
-              "description": "Sale or product not found"
-            }
-          }
-        }
-      },
-      "/sales/update-item/{id}": {
-        "put": {
-          "summary": "Update item in a sale for [sale_cashier]",
-          "tags": ["Items"],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "product_id": {
-                      "type": "string"
-                    },
-                    "quantity": {
-                      "type": "integer"
-                    }
-                  },
-                  "required": ["product_id", "quantity"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Item updated successfully"
-            },
-            "400": {
-              "description": "Invalid stock or sale status not pending"
-            },
-            "404": {
-              "description": "Sale or product not found"
-            }
-          }
-        }
-      },
-      "/sales/delete-item/{id}": {
-        "delete": {
-          "summary": "Delete item from a sale for [sale_cashier]",
-          "tags": ["Items"],
-          "parameters": [
-            {
-              "name": "id",
-              "in": "path",
-              "required": true,
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "product_id": {
-                      "type": "string"
-                    }
-                  },
-                  "required": ["product_id"]
-                }
-              }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Item deleted successfully"
-            },
-            "400": {
-              "description": "Sale status not pending"
-            },
-            "404": {
-              "description": "Sale or product not found"
             }
           }
         }
@@ -1052,7 +1049,7 @@
               "required": false,
               "schema": {
                 "type": "string",
-                "example": "DELETE"
+                "example": ""
               }
             },
             {
@@ -1062,7 +1059,7 @@
               "required": false,
               "schema": {
                 "type": "string",
-                "example": "Client"
+                "example": ""
               }
             },
             {
@@ -1072,7 +1069,17 @@
               "required": false,
               "schema": {
                 "type": "string",
-                "example": "64f2c41d8e1c2a3d4567b123"
+                "example": ""
+              }
+            },
+            {
+              "name": "branch_id",
+              "in": "query",
+              "description": "Filter by branch ID",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "example": ""
               }
             },
             {
@@ -1083,7 +1090,7 @@
               "schema": {
                 "type": "string",
                 "format": "date-time",
-                "example": "2025-08-01T00:00:00Z"
+                "example": ""
               }
             },
             {
@@ -1094,7 +1101,7 @@
               "schema": {
                 "type": "string",
                 "format": "date-time",
-                "example": "2025-08-31T23:59:59Z"
+                "example": ""
               }
             },
             {
@@ -1105,7 +1112,7 @@
               "schema": {
                 "type": "integer",
                 "default": 1,
-                "example": 2
+                "example": 1
               }
             },
             {
@@ -1262,20 +1269,274 @@
                   }
                 }
               }
-            },
-            "404": {
-              "description": "History not found",
+            }
+          }
+        }
+      },
+      "/bonus/add": {
+        "post": {
+          "tags": ["Bonus"],
+          "summary": "Create a bonus (server computes start_date and end_date)",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bonus_type": {
+                      "type": "string",
+                      "example": "507f1f77bcf86cd799439011"
+                    },
+                    "client": {
+                      "type": "string",
+                      "example": "507f1f77bcf86cd799439011"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": ["SERVICE", "SALE", "RENT"],
+                      "example": "SERVICE"
+                    }
+                  },
+                  "required": ["bonus_type", "client", "type"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Bonus created successfully",
               "content": {
                 "application/json": {
-                  "example": {
-                    "success": false,
-                    "message": "History not found"
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Bonus created successfully"
+                      },
+                      "data": {
+                        "type": "object"
+                      }
+                    }
                   }
                 }
               }
+            }
+          }
+        }
+      },
+      "/bonus/getAll": {
+        "get": {
+          "tags": ["Bonus"],
+          "summary": "Get all bonuses with pagination",
+          "parameters": [
+            {
+              "name": "page",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 1
+              },
+              "description": "Page number"
             },
-            "500": {
-              "description": "Server error"
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 10
+              },
+              "description": "Items per page"
+            },
+            {
+              "name": "client",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Filter by client ID"
+            },
+            {
+              "name": "branch",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Filter by branch ID"
+            },
+            {
+              "name": "type",
+              "in": "query",
+              "schema": {
+                "type": "string",
+                "enum": ["SERVICE", "SALE", "RENT"]
+              },
+              "description": "Filter by bonus type"
+            },
+            {
+              "name": "search",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Search by client name or other fields"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of bonuses",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "page_count": {
+                        "type": "integer",
+                        "example": 5
+                      },
+                      "current_page": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "next_page": {
+                        "type": "integer",
+                        "example": 2
+                      },
+                      "after_filtering_count": {
+                        "type": "integer",
+                        "example": 50
+                      },
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "bonus_type": {
+                              "type": "object"
+                            },
+                            "client": {
+                              "type": "object"
+                            },
+                            "branch": {
+                              "type": "object"
+                            },
+                            "type": {
+                              "type": "string",
+                              "example": "SERVICE"
+                            },
+                            "start_date": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "end_date": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bonus/getById/{id}": {
+        "get": {
+          "tags": ["Bonus"],
+          "summary": "Get bonus by ID",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Bonus ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Bonus details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "data": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bonus/delete/{id}": {
+        "delete": {
+          "tags": ["Bonus"],
+          "summary": "Delete bonus",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Bonus ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Bonus deleted successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Bonus deleted successfully"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -1817,6 +2078,112 @@
           }
         }
       },
+      "/client/debt-payments/{id}": {
+        "post": {
+          "summary": "Pay client debt (FIFO by sales)",
+          "description": "Klient qarzini to‘lash endpointi. Bu endpoint klientning qarz summasini kamaytiradi va FIFO tartibida unga tegishli savdolardagi qarzlarni ham kamaytiradi.",
+          "tags": ["Clients"],
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "Client ID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["amount", "user"],
+                  "properties": {
+                    "amount": {
+                      "type": "number",
+                      "example": 500000,
+                      "description": "To‘lanayotgan summa"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Client debt updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Client debt updated successfully"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request (amount > client's debt)",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "integer",
+                        "example": 400
+                      },
+                      "error": {
+                        "type": "string",
+                        "example": "Bad Request"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "sale_amount < amount"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Client not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "integer",
+                        "example": 404
+                      },
+                      "error": {
+                        "type": "string",
+                        "example": "Not Found"
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Client not found"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
       "/ceo/sign-up": {
         "post": {
           "tags": ["CEO"],
@@ -2275,6 +2642,209 @@
             },
             "404": {
               "description": "Transaction not found"
+            }
+          }
+        }
+      },
+      "/ceo/add-balance": {
+        "post": {
+          "tags": ["CEO"],
+          "summary": "Add money to CEO balance for [ceo]",
+          "description": "Allows CEO to add money to their balance. This endpoint can be used to increase the CEO's available funds.",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["amount"],
+                  "properties": {
+                    "amount": {
+                      "type": "number",
+                      "minimum": 1,
+                      "description": "Amount to add to CEO balance in uzbek sums",
+                      "example": 1000000
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Money added to CEO balance successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 200
+                      },
+                      "statusMsg": {
+                        "type": "string",
+                        "example": "OK"
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Money added to CEO balance successfully!"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "newBalance": {
+                            "type": "number",
+                            "description": "CEO's updated balance after adding money",
+                            "example": 1500000
+                          },
+                          "addedAmount": {
+                            "type": "number",
+                            "description": "Amount that was added to the balance",
+                            "example": 1000000
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Validation error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 400
+                      },
+                      "statusMsg": {
+                        "type": "string",
+                        "example": "Bad Request"
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Validation failed"
+                      },
+                      "errors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string",
+                              "example": "amount"
+                            },
+                            "msg": {
+                              "type": "string",
+                              "example": "Amount must be greater than 0"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - Missing or invalid token",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 401
+                      },
+                      "statusMsg": {
+                        "type": "string",
+                        "example": "Unauthorized"
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Access denied"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Forbidden - Insufficient permissions",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 403
+                      },
+                      "statusMsg": {
+                        "type": "string",
+                        "example": "Forbidden"
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Access denied"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "CEO not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 404
+                      },
+                      "statusMsg": {
+                        "type": "string",
+                        "example": "Not Found"
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "CEO not found!"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "500": {
+              "description": "Internal Server Error",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "statusCode": {
+                        "type": "number",
+                        "example": 500
+                      },
+                      "statusMsg": {
+                        "type": "string",
+                        "example": "Internal Server Error"
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "An error occurred while processing the request"
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -3845,6 +4415,16 @@
               }
             },
             {
+              "name": "role",
+              "in": "query",
+              "required": false,
+              "description": "Filter by role (e.g., 'cashier')",
+              "schema": {
+                "type": "string",
+                "example": ""
+              }
+            },
+            {
               "name": "page",
               "in": "query",
               "required": false,
@@ -4741,6 +5321,209 @@
           "responses": {}
         }
       },
+      "/product/rent-product/update-price/{id}": {
+        "put": {
+          "tags": ["Product"],
+          "summary": "Update rental price of rent product for [manager]",
+          "description": "Updates only the rental price of a specific rent product. This endpoint allows managers to modify pricing without affecting other product details.",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "description": "Rent product ID",
+              "schema": {
+                "type": "string",
+                "example": "64c8f2f4d5f1a5c1b8d0a123"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "product_rent_price": {
+                      "type": "number",
+                      "minimum": 0.01,
+                      "description": "New rental price (must be greater than 0)",
+                      "example": 150.5
+                    }
+                  },
+                  "required": ["product_rent_price"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Rental price updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Rent product price updated successfully!"
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "example": "64c8f2f4d5f1a5c1b8d0a123"
+                          },
+                          "previous_price": {
+                            "type": "number",
+                            "example": 100
+                          },
+                          "new_price": {
+                            "type": "number",
+                            "example": 150.5
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2025-09-14T09:56:00.000Z"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Bad Request - Invalid rental price",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Valid rental price is required and must be greater than 0"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - Invalid or missing authentication token",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Unauthorized"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Forbidden - Insufficient permissions (Manager role required)",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Forbidden"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Not Found - Rent product not found",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Rent product not found"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "422": {
+              "description": "Unprocessable Entity - Validation errors",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "errors": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "msg": {
+                              "type": "string",
+                              "example": "Rental price must be greater than 0"
+                            },
+                            "param": {
+                              "type": "string",
+                              "example": "product_rent_price"
+                            },
+                            "location": {
+                              "type": "string",
+                              "example": "body"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearerAuth": []
+            }
+          ]
+        }
+      },
       "/product/sale-product/get-all": {
         "get": {
           "tags": ["Product"],
@@ -4769,6 +5552,16 @@
                 "type": "string"
               },
               "example": "TV"
+            },
+            {
+              "name": "branch",
+              "in": "query",
+              "required": false,
+              "description": "Filter by branch ID",
+              "schema": {
+                "type": "string",
+                "example": ""
+              }
             }
           ],
           "responses": {}
@@ -4802,6 +5595,16 @@
                 "type": "string"
               },
               "example": "Excavator"
+            },
+            {
+              "name": "branch",
+              "in": "query",
+              "required": false,
+              "description": "Filter by branch ID",
+              "schema": {
+                "type": "string",
+                "example": ""
+              }
             }
           ],
           "responses": {}
@@ -6186,6 +6989,10 @@
                       "type": "string",
                       "format": "date-time",
                       "example": "2025-08-28T18:00:00.000Z"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "example": "Comment is there"
                     }
                   },
                   "required": [
@@ -6271,6 +7078,10 @@
                       "type": "string",
                       "format": "date-time",
                       "example": "2025-08-29T18:00:00.000Z"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "example": "Comment is there"
                     }
                   }
                 }
@@ -6496,6 +7307,10 @@
                       "type": "string",
                       "format": "date",
                       "example": "2025-09-12"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "example": "Comment is there"
                     }
                   },
                   "required": [
@@ -6571,6 +7386,10 @@
                       "type": "string",
                       "format": "date",
                       "example": "2025-09-13"
+                    },
+                    "comment": {
+                      "type": "string",
+                      "example": "Comment is there"
                     }
                   }
                 }
@@ -6774,6 +7593,354 @@
             }
           ],
           "responses": {}
+        }
+      },
+      "/bonus-type/add": {
+        "post": {
+          "tags": ["Bonus Type"],
+          "summary": "Create new bonus type",
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bonus_name": {
+                      "type": "string",
+                      "example": "VIP Bonus"
+                    },
+                    "target_amount": {
+                      "type": "number",
+                      "example": 1000000
+                    },
+                    "discount_amount": {
+                      "type": "number",
+                      "example": 150000
+                    },
+                    "branch": {
+                      "type": "string",
+                      "example": "507f1f77bcf86cd799439011"
+                    }
+                  },
+                  "required": [
+                    "bonus_name",
+                    "target_amount",
+                    "discount_amount",
+                    "branch"
+                  ]
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Bonus type created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Bonus type created successfully"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bonus-type/update/{id}": {
+        "put": {
+          "tags": ["Bonus Type"],
+          "summary": "Update bonus type",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Bonus Type ID"
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "bonus_name": {
+                      "type": "string",
+                      "example": "Premium Bonus"
+                    },
+                    "target_amount": {
+                      "type": "number",
+                      "example": 2000000
+                    },
+                    "discount_amount": {
+                      "type": "number",
+                      "example": 300000
+                    },
+                    "branch": {
+                      "type": "string",
+                      "example": "507f1f77bcf86cd799439011"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Bonus type updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Bonus type updated successfully"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bonus-type/getAll": {
+        "get": {
+          "tags": ["Bonus Type"],
+          "summary": "Get all bonus types with pagination",
+          "parameters": [
+            {
+              "name": "page",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 1
+              },
+              "description": "Page number"
+            },
+            {
+              "name": "limit",
+              "in": "query",
+              "schema": {
+                "type": "integer",
+                "default": 10
+              },
+              "description": "Items per page"
+            },
+            {
+              "name": "search",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Search by bonus name"
+            },
+            {
+              "name": "branch",
+              "in": "query",
+              "schema": {
+                "type": "string"
+              },
+              "description": "Filter by branch ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of bonus types",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "page_count": {
+                        "type": "integer",
+                        "example": 5
+                      },
+                      "current_page": {
+                        "type": "integer",
+                        "example": 1
+                      },
+                      "next_page": {
+                        "type": "integer",
+                        "example": 2
+                      },
+                      "after_filtering_count": {
+                        "type": "integer",
+                        "example": 50
+                      },
+                      "data": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "_id": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "bonus_name": {
+                              "type": "string",
+                              "example": "VIP Bonus"
+                            },
+                            "target_amount": {
+                              "type": "number",
+                              "example": 1000000
+                            },
+                            "discount_amount": {
+                              "type": "number",
+                              "example": 150000
+                            },
+                            "branch": {
+                              "type": "string",
+                              "example": "507f1f77bcf86cd799439011"
+                            },
+                            "created_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            },
+                            "updated_at": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bonus-type/getById/{id}": {
+        "get": {
+          "tags": ["Bonus Type"],
+          "summary": "Get bonus type by ID",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Bonus Type ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Bonus type details",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "data": {
+                        "type": "object",
+                        "properties": {
+                          "_id": {
+                            "type": "string",
+                            "example": "507f1f77bcf86cd799439011"
+                          },
+                          "bonus_name": {
+                            "type": "string",
+                            "example": "VIP Bonus"
+                          },
+                          "target_amount": {
+                            "type": "number",
+                            "example": 1000000
+                          },
+                          "discount_amount": {
+                            "type": "number",
+                            "example": 150000
+                          },
+                          "branch": {
+                            "type": "string",
+                            "example": "507f1f77bcf86cd799439011"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "updated_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/bonus-type/delete/{id}": {
+        "delete": {
+          "tags": ["Bonus Type"],
+          "summary": "Delete bonus type",
+          "parameters": [
+            {
+              "name": "id",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string"
+              },
+              "description": "Bonus Type ID"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Bonus type deleted successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": true
+                      },
+                      "msg": {
+                        "type": "string",
+                        "example": "Bonus type deleted successfully"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

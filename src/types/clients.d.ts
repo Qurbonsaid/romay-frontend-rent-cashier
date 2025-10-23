@@ -12,11 +12,14 @@ export interface Client {
   }
   address: string
   debt: {
-    amount: number
+    sale_amount: number
+    total_amount: number
     currency: string
   }
   customer_tier: string
-  sales_count?: number
+  sales_count: number
   created_at: string
   updated_at: string
+  service_count: number
+  rent_count: number
 }

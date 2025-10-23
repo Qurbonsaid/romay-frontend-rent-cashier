@@ -158,11 +158,17 @@ export default function ClientDetails() {
         </div>
 
         {/* Key Information - Compact Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
           <div className="text-center p-3 bg-blue-50 rounded-lg">
-            <div className="text-xs text-blue-600 font-medium">SOTUVLAR</div>
+            <div className="text-xs text-blue-600 font-medium">SERVISLAR</div>
             <div className="text-lg font-bold text-blue-900">
-              {client.sales_count || 0}
+              {client.service_count || 0}
+            </div>
+          </div>
+          <div className="text-center p-3 bg-blue-50 rounded-lg">
+            <div className="text-xs text-blue-600 font-medium">IJARALAR</div>
+            <div className="text-lg font-bold text-blue-900">
+              {client.rent_count || 0}
             </div>
           </div>
 
@@ -222,15 +228,15 @@ export default function ClientDetails() {
             </h4>
             <div className="space-y-2 text-sm">
               <div>
-                <span className="text-gray-600">Sotuvlar soni:</span>
+                <span className="text-gray-600">Servislar soni:</span>
                 <span className="font-medium ml-2">
-                  {client.sales_count || 0}
+                  {client.service_count || 0}
                 </span>
               </div>
               <div>
-                <span className="text-gray-600">Mijoz toifasi:</span>
+                <span className="text-gray-600">Ijaralar soni:</span>
                 <span className="font-medium ml-2">
-                  {client.customer_tier || 'Oddiy'}
+                  {client.rent_count || 0}
                 </span>
               </div>
             </div>

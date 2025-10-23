@@ -298,13 +298,17 @@ export default function RentDetailsModal({
           </div>
 
           {/* Client Debt Information */}
-          {rent.client?.debt && rent.client.debt.amount > 0 && (
+          {rent.client?.debt && rent.client.debt.total_amount > 0 && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-red-900 mb-2">
                 Mijoz qarzi
               </h3>
               <div className="text-xl font-bold text-red-600">
-                {formatPrice(rent.client.debt.amount)}{' '}
+                {formatPrice(rent.client.debt.total_amount)}{' '}
+                {rent.client.debt.currency}
+              </div>
+              <div className="text-sm text-red-700 mt-1">
+                Sotuvdan: {formatPrice(rent.client.debt.sale_amount)}{' '}
                 {rent.client.debt.currency}
               </div>
             </div>
