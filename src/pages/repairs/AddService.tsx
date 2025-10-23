@@ -55,15 +55,50 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { CheckRole } from '@/utils/checkRole'
 import { formatNumberInput, formatCurrency } from '@/utils/numberFormat'
 
-// Service form schema matching API requirements
-const serviceSchema = z.object({
-  client_id: z.string().min(1, 'Mijoz tanlash majburiy'),
-  mechanic: z.string().min(1, 'Usta tanlash majburiy'),
-  mechanic_salary: z.number().min(0, "Usta maoshi manfiy bo'lmasligi kerak"),
-  received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
-  delivery_date: z.date({ message: 'Topshirish sanasi majburiy' }),
-  comment: z.string().optional(),
-})
+// Service form schema with conditional validation for mechanic and salary
+const serviceSchema = z
+  .object({
+    client_id: z.string().min(1, 'Mijoz tanlash majburiy'),
+    mechanic: z.string().optional(),
+    mechanic_salary: z.number().min(0, "Usta maoshi manfiy bo'lmasligi kerak"),
+    received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
+    delivery_date: z.date({ message: 'Topshirish sanasi majburiy' }),
+    comment: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // Agar usta tanlangan bo'lsa, maosh majburiy
+      if (
+        data.mechanic &&
+        data.mechanic.trim() !== '' &&
+        data.mechanic !== 'none'
+      ) {
+        return data.mechanic_salary > 0
+      }
+      return true
+    },
+    {
+      message: "Usta tanlangan bo'lsa, maosh belgilash majburiy",
+      path: ['mechanic_salary'],
+    }
+  )
+  .refine(
+    (data) => {
+      // Agar maosh belgilangan bo'lsa, usta majburiy
+      if (data.mechanic_salary > 0) {
+        return (
+          data.mechanic &&
+          data.mechanic.trim() !== '' &&
+          data.mechanic !== 'none'
+        )
+      }
+      return true
+    },
+    {
+      message: "Maosh belgilangan bo'lsa, usta tanlash majburiy",
+      path: ['mechanic'],
+    }
+  )
 
 type ServiceFormData = z.infer<typeof serviceSchema>
 
@@ -136,7 +171,7 @@ export default function AddService() {
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       client_id: '',
-      mechanic: '',
+      mechanic: 'none',
       mechanic_salary: 0,
       received_date: new Date(), // Current date and time
       delivery_date: (() => {
@@ -262,12 +297,10 @@ export default function AddService() {
       }))
 
       // Prepare service request according to API spec (without totalAmount)
-      const serviceRequest: AddServiceRequest = {
+      const serviceRequest: Partial<AddServiceRequest> = {
         branch: branch._id,
         client_name: selectedClient.username,
         client_phone: selectedClient.phone,
-        mechanic: data.mechanic,
-        mechanic_salary: data.mechanic_salary,
         products,
         received_date: data.received_date.toISOString(),
         delivery_date: data.delivery_date.toISOString(),
@@ -275,7 +308,17 @@ export default function AddService() {
           data.comment.trim() !== '' && { comment: data.comment }),
       }
 
-      await addService(serviceRequest).unwrap()
+      // Faqat usta va maosh bo'lsa qo'shish (none emas)
+      if (
+        data.mechanic &&
+        data.mechanic.trim() !== '' &&
+        data.mechanic !== 'none'
+      ) {
+        serviceRequest.mechanic = data.mechanic
+        serviceRequest.mechanic_salary = data.mechanic_salary
+      }
+
+      await addService(serviceRequest as AddServiceRequest).unwrap()
 
       toast.success("Xizmat muvaffaqiyatli qo'shildi!")
       navigate('/repairs')
@@ -412,17 +455,18 @@ export default function AddService() {
                   name="mechanic"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Usta *</FormLabel>
+                      <FormLabel>Usta (ixtiyoriy)</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value || 'none'}
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Ustani tanlang" />
+                            <SelectValue placeholder="Ustani tanlang (ixtiyoriy)" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="none">Usta tanlanmagan</SelectItem>
                           {mechanicsLoading ? (
                             <SelectItem value="loading" disabled>
                               Yuklanmoqda...
@@ -450,7 +494,7 @@ export default function AddService() {
                   name="mechanic_salary"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Usta maoshi *</FormLabel>
+                      <FormLabel>Usta maoshi (ixtiyoriy)</FormLabel>
                       <FormControl>
                         <Input
                           type="text"
@@ -795,12 +839,14 @@ export default function AddService() {
 
               {/* Mechanic Information */}
               <div className="p-2 bg-gray-50 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Usta:</h4>
+                <h4 className="font-medium text-sm mb-2">Usta (ixtiyoriy):</h4>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Ismi</span>
                     <span className="text-sm font-medium">
-                      {form.watch('mechanic')
+                      {form.watch('mechanic') &&
+                      form.watch('mechanic') !== '' &&
+                      form.watch('mechanic') !== 'none'
                         ? mechanicsData?.data.find(
                             (m) => m._id === form.watch('mechanic')
                           )?.fullName || 'Tanlanmagan'
@@ -810,7 +856,9 @@ export default function AddService() {
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">Maosh</span>
                     <span className="text-sm font-medium">
-                      {formatCurrency(form.watch('mechanic_salary') || 0)}
+                      {form.watch('mechanic_salary') > 0
+                        ? formatCurrency(form.watch('mechanic_salary'))
+                        : 'Belgilanmagan'}
                     </span>
                   </div>
                 </div>

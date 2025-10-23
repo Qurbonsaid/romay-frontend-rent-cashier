@@ -59,9 +59,9 @@ function Clients() {
     navigate(`/clients/${clientsData[0]._id}`)
   }
   const pagination = {
-    current_page: clientsResponse?.current_page || 1,
-    page_count: clientsResponse?.page_count || 1,
-    after_filtering_count: clientsResponse?.after_filtering_count || 0,
+    current_page: clientsResponse?.pagination?.page || 1,
+    page_count: clientsResponse?.pagination?.total_pages || 1,
+    after_filtering_count: clientsResponse?.pagination?.total || 0,
   }
 
   const handlePageChange = (page: number) => {
@@ -134,7 +134,10 @@ function Clients() {
                   <th className="px-6 py-3 text-left font-medium">Toifa</th>
                   <th className="px-6 py-3 text-left font-medium">Qarz</th>
                   <th className="px-6 py-3 text-center font-medium">
-                    Sotuvlar soni
+                    Servislar soni
+                  </th>
+                  <th className="px-6 py-3 text-center font-medium">
+                    Ijaralar soni
                   </th>
                   <th className="px-6 py-3 text-left font-medium">
                     Qo'shilgan sana
@@ -181,7 +184,12 @@ function Clients() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="text-sm text-[#18181B]">
-                        {c.sales_count || 0}
+                        {c.service_count || 0}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <div className="text-sm text-[#18181B]">
+                        {c.rent_count || 0}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

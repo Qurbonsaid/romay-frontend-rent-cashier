@@ -12,6 +12,7 @@ import Rents from './pages/rents/rents'
 import AddRent from './pages/rents/AddRent'
 import EditRent from './pages/rents/EditRent.tsx'
 import RentDetails from './pages/rents/rentDetails'
+import Bonuses from './pages/bonus/bonuses'
 
 export const AppRouter = () => {
   return (
@@ -50,6 +51,9 @@ export const AppRouter = () => {
       </Route>
       <Route path="products" element={<PrivateRoute />}>
         <Route index element={<ProductPage />}></Route>
+      </Route>
+      <Route path="bonuses" element={<PrivateRoute />}>
+        <Route index element={<Bonuses />} />
       </Route>
     </Routes>
   )

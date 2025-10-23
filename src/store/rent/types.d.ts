@@ -15,17 +15,26 @@ export interface Payment {
 
 export interface Client {
   debt: {
-    amount: number
+    sale_amount: number
+    total_amount: number
     currency: string
   }
-  sales_count?: number
+  sales_count: number
+  service_count: number
+  rent_count: number
   _id: string
   username: string
   description: string
   phone: string
   profession: string
   birth_date: string
-  branch_id: string
+  branch_id:
+    | string
+    | {
+        _id: string
+        name: string
+        address: string
+      }
   address: string
   customer_tier: string
   created_at: string

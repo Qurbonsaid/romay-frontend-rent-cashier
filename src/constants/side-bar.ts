@@ -1,4 +1,3 @@
- 
 // sidebar-groups.ts
 import {
   LayoutGrid,
@@ -16,6 +15,7 @@ import {
   Store,
   Import,
   Upload,
+  Ticket,
 } from 'lucide-react'
 
 export type Role =
@@ -73,6 +73,7 @@ export const getSidebarGroups = (role: Role): SidebarGroup[] => {
               url: '/rents',
             },
             { title: "Ta'mirlash", icon: Wrench, url: '/repairs' },
+            { title: 'Bonuslar', icon: Ticket, url: '/bonuses' },
           ],
         },
       ]
@@ -104,6 +105,7 @@ export const getSidebarGroups = (role: Role): SidebarGroup[] => {
               url: '/rents',
             },
             { title: "Ta'mirlash", icon: Wrench, url: '/repairs' },
+            { title: 'Bonuslar', icon: Ticket, url: '/bonuses' },
           ],
         },
       ]
@@ -134,6 +136,7 @@ export const getSidebarGroups = (role: Role): SidebarGroup[] => {
           items: [
             { title: 'Ijara', icon: CircleArrowOutUpRight, url: '/' },
             { title: "Ta'mirlash", icon: Wrench, url: '/repairs' },
+            { title: 'Bonuslar', icon: Ticket, url: '/bonuses' },
           ],
         },
         {

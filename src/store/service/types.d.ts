@@ -85,8 +85,8 @@ export interface AddServiceRequest {
   branch: string
   client_name: string
   client_phone: string
-  mechanic: string
-  mechanic_salary: number
+  mechanic?: string
+  mechanic_salary?: number
   products: Product[]
   received_date: string
   delivery_date: string
