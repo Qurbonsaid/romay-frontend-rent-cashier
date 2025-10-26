@@ -68,6 +68,42 @@ const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
       }
     }
 
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+      // Noto'g'ri belgilarni bloklash
+      const invalidKeys = ['e', 'E', '+', '-']
+
+      if (!allowDecimals) {
+        invalidKeys.push('.', ',')
+      }
+
+      if (invalidKeys.includes(e.key)) {
+        e.preventDefault()
+        return
+      }
+
+      // Original onKeyDown ni chaqirish
+      if (props.onKeyDown) {
+        props.onKeyDown(e)
+      }
+    }
+
+    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+      const pastedText = e.clipboardData.getData('text')
+
+      // Noto'g'ri belgilar borligini tekshirish
+      const invalidChars = allowDecimals ? /[^0-9.]/g : /[^0-9]/g
+
+      if (invalidChars.test(pastedText)) {
+        e.preventDefault()
+        return
+      }
+
+      // Original onPaste ni chaqirish
+      if (props.onPaste) {
+        props.onPaste(e)
+      }
+    }
+
     const displayValue = () => {
       if (value === undefined || value === '') return ''
 
@@ -82,9 +118,12 @@ const NumberInput = React.forwardRef<HTMLInputElement, NumberInputProps>(
     return (
       <Input
         type="text"
+        inputMode="numeric"
         className={cn(className)}
         value={displayValue()}
         onChange={handleChange}
+        onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         ref={ref}
         {...props}
       />

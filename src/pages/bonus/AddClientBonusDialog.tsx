@@ -30,6 +30,7 @@ import {
 } from '@/store/bonus/bonus.api'
 import { useGetClientsQuery } from '@/store/clients/clients.api'
 import { useGetBranch } from '@/hooks/use-get-branch'
+import { useDebounce } from '@/hooks/use-debounce'
 import { toast } from 'sonner'
 import { useState } from 'react'
 
@@ -51,6 +52,9 @@ export default function AddClientBonusDialog({ open, setOpen }: Props) {
   const [addClientBonus, { isLoading: isAdding }] = useAddClientBonusMutation()
   const [clientSearch, setClientSearch] = useState('')
 
+  // Debounce qidiruv - 500ms kutadi
+  const debouncedSearch = useDebounce(clientSearch, 500)
+
   const branchId = typeof branch === 'object' ? branch._id : branch
 
   const { data: bonusTypesResponse, isLoading: loadingBonusTypes } =
@@ -59,21 +63,15 @@ export default function AddClientBonusDialog({ open, setOpen }: Props) {
       limit: 100,
     })
 
+  // Server-side qidiruv - limit yo'q, search bilan
   const { data: clientsResponse, isLoading: loadingClients } =
     useGetClientsQuery({
       branch_id: branchId,
-      limit: 100,
+      search: debouncedSearch || undefined, // Bo'sh bo'lsa undefined yuboradi
     })
 
   const bonusTypes = bonusTypesResponse?.data || []
   const clients = clientsResponse?.data || []
-
-  // Mijozlarni qidirish
-  const filteredClients = clients.filter(
-    (client) =>
-      client.username.toLowerCase().includes(clientSearch.toLowerCase()) ||
-      (client.phone && client.phone.includes(clientSearch))
-  )
 
   const form = useForm<AddClientBonusValues>({
     resolver: zodResolver(addClientBonusSchema),
@@ -95,13 +93,40 @@ export default function AddClientBonusDialog({ open, setOpen }: Props) {
       toast.success('Bonus muvaffaqiyatli berildi')
       setOpen(false)
       form.reset()
-    } catch {
-      toast.error('Bonus berishda xatolik yuz berdi')
+      setClientSearch('')
+    } catch (error: any) {
+      // Backend'dan kelgan error xabarni to'g'ridan-to'g'ri ko'rsatish
+      let errorMessage = 'Bonus berishda xatolik yuz berdi'
+
+      if (error?.data?.error?.msg) {
+        errorMessage = error.data.error.msg
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.data?.msg) {
+        errorMessage = error.data.msg
+      } else if (error?.data?.error) {
+        errorMessage =
+          typeof error.data.error === 'string'
+            ? error.data.error
+            : JSON.stringify(error.data.error)
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage)
+    }
+  }
+
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open)
+    if (!open) {
+      setClientSearch('')
+      form.reset()
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Mijozga bonus berish</DialogTitle>
@@ -140,14 +165,25 @@ export default function AddClientBonusDialog({ open, setOpen }: Props) {
                             value={clientSearch}
                             onChange={(e) => setClientSearch(e.target.value)}
                             className="h-9"
+                            onKeyDown={(e) => {
+                              e.stopPropagation()
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                            }}
+                            autoFocus
                           />
                         </div>
-                        {filteredClients.length === 0 ? (
+                        {loadingClients ? (
+                          <div className="p-2 text-sm text-gray-500 text-center">
+                            Qidirilmoqda...
+                          </div>
+                        ) : clients.length === 0 ? (
                           <div className="p-2 text-sm text-gray-500 text-center">
                             {clientSearch ? 'Mijoz topilmadi' : "Mijozlar yo'q"}
                           </div>
                         ) : (
-                          filteredClients.map((client) => (
+                          clients.map((client) => (
                             <SelectItem key={client._id} value={client._id}>
                               <div className="flex flex-col">
                                 <span className="font-medium">
@@ -200,15 +236,15 @@ export default function AddClientBonusDialog({ open, setOpen }: Props) {
                               key={bonusType._id}
                               value={bonusType._id}
                             >
-                              <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1">
                                 <span className="font-medium">
-                                  {bonusType.bonus_name}
+                                  {bonusType.bonus_name}:
                                 </span>
-                                <span className="text-xs text-emerald-600">
+                                <span className="text-sm">
                                   {bonusType.target_amount.toLocaleString(
                                     'uz-UZ'
                                   )}{' '}
-                                  so'mga{' '}
+                                  /{' '}
                                   {bonusType.discount_amount.toLocaleString(
                                     'uz-UZ'
                                   )}{' '}

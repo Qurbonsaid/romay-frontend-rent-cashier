@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import {
   Dialog,
   DialogContent,
@@ -66,8 +67,26 @@ export default function EditBonusDialog({ open, setOpen, bonusType }: Props) {
 
       toast.success('Bonus turi muvaffaqiyatli yangilandi')
       setOpen(false)
-    } catch {
-      toast.error('Bonus turini yangilashda xatolik yuz berdi')
+    } catch (error: any) {
+      // Backend'dan kelgan error xabarni to'g'ridan-to'g'ri ko'rsatish
+      let errorMessage = 'Bonus turini yangilashda xatolik yuz berdi'
+
+      if (error?.data?.error?.msg) {
+        errorMessage = error.data.error.msg
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.data?.msg) {
+        errorMessage = error.data.msg
+      } else if (error?.data?.error) {
+        errorMessage =
+          typeof error.data.error === 'string'
+            ? error.data.error
+            : JSON.stringify(error.data.error)
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage)
     }
   }
 
@@ -104,11 +123,10 @@ export default function EditBonusDialog({ open, setOpen, bonusType }: Props) {
                 <FormItem>
                   <FormLabel>Maqsad summa (so'm)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="1000000"
-                      min="0"
-                      {...field}
+                    <NumberInput
+                      placeholder="1 000 000"
+                      value={field.value}
+                      onChange={(value) => field.onChange(value.toString())}
                     />
                   </FormControl>
                   <p className="text-xs text-gray-500">
@@ -126,11 +144,10 @@ export default function EditBonusDialog({ open, setOpen, bonusType }: Props) {
                 <FormItem>
                   <FormLabel>Chegirma summa (so'm)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="150000"
-                      min="0"
-                      {...field}
+                    <NumberInput
+                      placeholder="150 000"
+                      value={field.value}
+                      onChange={(value) => field.onChange(value.toString())}
                     />
                   </FormControl>
                   <p className="text-xs text-gray-500">

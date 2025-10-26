@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Trash2, Plus, Minus } from 'lucide-react'
 import type { ProductWarehouseItem } from '@/store/product/types.d'
 import {
@@ -85,12 +85,10 @@ export default function ProductCard({
       <div className="flex items-center gap-2">
         {isEditing ? (
           <div className="flex items-center gap-2">
-            <Input
-              type="number"
+            <NumberInput
               value={editQuantity}
-              onChange={(e) => setEditQuantity(e.target.value)}
+              onChange={(value) => setEditQuantity(value.toString())}
               className="w-16 h-8 text-center"
-              min="0"
               onBlur={handleQuantitySubmit}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {

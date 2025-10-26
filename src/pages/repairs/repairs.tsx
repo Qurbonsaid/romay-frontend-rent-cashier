@@ -455,12 +455,12 @@ function ServicesTable({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
-                      {formatPrice(service.totalAmount)} so'm
+                      {formatPrice(service.totalAmount || 0)} so'm
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">
                     <div className="text-sm text-[#18181B]">
-                      {formatPrice(service.mechanic_salary)} so'm
+                      {formatPrice(service.mechanic_salary || 0)} so'm
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-center">

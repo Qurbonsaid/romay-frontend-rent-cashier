@@ -64,6 +64,7 @@ const serviceSchema = z
     received_date: z.date({ message: 'Qabul qilish sanasi majburiy' }),
     delivery_date: z.date({ message: 'Topshirish sanasi majburiy' }),
     comment: z.string().optional(),
+    discount: z.number().min(0, "Chegirma manfiy bo'lmasligi kerak").optional(),
   })
   .refine(
     (data) => {
@@ -130,13 +131,12 @@ export default function AddService() {
   // State for tracking price changes
   const [hasPriceChanges, setHasPriceChanges] = useState(false)
 
+  // State for discount (bonus)
+  const [discountDisplay, setDiscountDisplay] = useState('')
+  const [maxDiscount, setMaxDiscount] = useState(0)
+
   // Debounce search term for API optimization
   const debouncedProductSearch = useDebounce(productSearch, 300)
-
-  // Reset pagination when search changes
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [debouncedProductSearch])
 
   // API hooks
   const [addService, { isLoading: isSubmitting }] = useAddServiceMutation()
@@ -180,8 +180,74 @@ export default function AddService() {
         return tomorrow // Tomorrow same time
       })(),
       comment: '',
+      discount: 0,
     },
   })
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [debouncedProductSearch])
+
+  // Computed values
+  const selectedProductsList = Object.values(selectedProducts)
+  const availableProducts = productsData?.data || []
+
+  // Effect to handle discount when products change or client changes
+  useEffect(() => {
+    if (!selectedClient || !selectedClient.bonus) {
+      setMaxDiscount(0)
+      form.setValue('discount', 0)
+      setDiscountDisplay('')
+      return
+    }
+
+    const bonus = selectedClient.bonus
+    // Check if bonus type is SERVICE
+    if (bonus.type !== 'SERVICE') {
+      setMaxDiscount(0)
+      form.setValue('discount', 0)
+      setDiscountDisplay('')
+      return
+    }
+
+    // Check if bonus is within date range
+    const now = new Date()
+    const startDate = new Date(bonus.start_date)
+    const endDate = new Date(bonus.end_date)
+
+    if (now < startDate || now > endDate) {
+      setMaxDiscount(0)
+      form.setValue('discount', 0)
+      setDiscountDisplay('')
+      return
+    }
+
+    const totalProductsSum = selectedProductsList.reduce((total, item) => {
+      const price = item.product_change_price || 0
+      return total + item.product_count * price
+    }, 0)
+
+    const targetAmount = bonus.bonus_type.target_amount
+    const maxDiscountAmount = bonus.client_discount_amount
+
+    // Check if total products sum meets the target amount
+    if (totalProductsSum >= targetAmount) {
+      setMaxDiscount(maxDiscountAmount)
+      // Only auto-set discount if it's currently 0 or higher than max
+      const currentDiscount = form.getValues('discount') || 0
+      if (currentDiscount === 0 || currentDiscount > maxDiscountAmount) {
+        form.setValue('discount', maxDiscountAmount)
+        setDiscountDisplay(
+          formatNumberInput(maxDiscountAmount.toString()).display
+        )
+      }
+    } else {
+      setMaxDiscount(0)
+      form.setValue('discount', 0)
+      setDiscountDisplay('')
+    }
+  }, [selectedClient, selectedProductsList, form])
 
   // Check permissions
   if (!CheckRole(userRole, ['manager', 'rent_cashier', 'ceo'])) {
@@ -318,6 +384,11 @@ export default function AddService() {
         serviceRequest.mechanic_salary = data.mechanic_salary
       }
 
+      // Add discount if it's greater than 0
+      if (data.discount && data.discount > 0) {
+        serviceRequest.discount = data.discount
+      }
+
       await addService(serviceRequest as AddServiceRequest).unwrap()
 
       toast.success("Xizmat muvaffaqiyatli qo'shildi!")
@@ -342,9 +413,6 @@ export default function AddService() {
       toast.error(errorMessage)
     }
   }
-
-  const selectedProductsList = Object.values(selectedProducts)
-  const availableProducts = productsData?.data || []
 
   // Calculate total products sum
   const getTotalProductsSum = () => {
@@ -784,6 +852,83 @@ export default function AddService() {
                     )}
                   />
                 )}
+
+                {/* Discount Field - Only shown when client has bonus and eligible */}
+                {maxDiscount > 0 && (
+                  <FormField
+                    control={form.control}
+                    name="discount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <span>🎁 Bonus chegirma</span>
+                          <span className="text-xs text-gray-500">
+                            (max: {formatCurrency(maxDiscount)})
+                          </span>
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="text"
+                            placeholder="0"
+                            value={
+                              discountDisplay ||
+                              ((field.value || 0) > 0
+                                ? formatNumberInput(
+                                    (field.value || 0).toString()
+                                  ).display
+                                : '')
+                            }
+                            onChange={(e) => {
+                              const inputValue = e.target.value
+                              if (inputValue === '' || inputValue === '0') {
+                                setDiscountDisplay('')
+                                field.onChange(0)
+                              } else {
+                                const formatted = formatNumberInput(inputValue)
+                                const numericValue = formatted.numeric
+
+                                // Ensure discount doesn't exceed max
+                                const finalValue = Math.min(
+                                  numericValue,
+                                  maxDiscount
+                                )
+
+                                setDiscountDisplay(
+                                  formatNumberInput(finalValue.toString())
+                                    .display
+                                )
+                                field.onChange(finalValue)
+                              }
+                            }}
+                            onBlur={() => {
+                              // Update display to match the numeric value
+                              if ((field.value || 0) > 0) {
+                                setDiscountDisplay(
+                                  formatNumberInput(
+                                    (field.value || 0).toString()
+                                  ).display
+                                )
+                              } else {
+                                setDiscountDisplay('')
+                              }
+                            }}
+                            className="border-green-200 focus:border-green-300"
+                          />
+                        </FormControl>
+                        <p className="text-sm text-green-600">
+                          ✓ Mijoz bonus dasturiga qo'shilgan! Chegirma berish
+                          mumkin.
+                        </p>
+                        {(field.value || 0) > maxDiscount && (
+                          <p className="text-sm text-red-600">
+                            ⚠️ Chegirma maksimal miqdordan oshmasligi kerak!
+                          </p>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </form>
             </Form>
           </CardContent>
@@ -874,6 +1019,90 @@ export default function AddService() {
                   </span>
                 </div>
               </div>
+
+              {/* Discount Information - Only shown when discount > 0 */}
+              {maxDiscount > 0 && (
+                <div className="p-2 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="font-medium text-sm mb-2 text-green-800">
+                    🎁 Bonus chegirma:
+                  </h4>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Bonus turi</span>
+                      <span className="text-sm font-medium text-green-700">
+                        {selectedClient?.bonus?.bonus_type.bonus_name || '-'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        Maqsad summa
+                      </span>
+                      <span className="text-sm font-medium">
+                        {formatCurrency(
+                          selectedClient?.bonus?.bonus_type.target_amount || 0
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        Maksimal chegirma
+                      </span>
+                      <span className="text-sm font-medium text-orange-600">
+                        {formatCurrency(maxDiscount)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-1 border-t border-green-200">
+                      <span className="text-sm text-gray-700 font-medium">
+                        Qo'llanilgan chegirma
+                      </span>
+                      <span className="text-base font-bold text-green-600">
+                        {formatCurrency(form.watch('discount') || 0)}
+                      </span>
+                    </div>
+                    {getTotalProductsSum() >=
+                      (selectedClient?.bonus?.bonus_type.target_amount ||
+                        0) && (
+                      <div className="pt-1">
+                        <p className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
+                          ✓ Mijoz bonus shartini bajarib bo'ldi!
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Final Total with Discount */}
+              {maxDiscount > 0 && (form.watch('discount') || 0) > 0 && (
+                <div className="p-3 bg-blue-50 rounded-lg border-2 border-blue-300">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">
+                        Mahsulotlar summasi
+                      </span>
+                      <span className="text-sm font-medium">
+                        {formatCurrency(getTotalProductsSum())}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Chegirma</span>
+                      <span className="text-sm font-medium text-red-600">
+                        - {formatCurrency(form.watch('discount') || 0)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-2 border-t-2 border-blue-300">
+                      <span className="text-base font-bold text-gray-800">
+                        To'lov summasi
+                      </span>
+                      <span className="text-lg font-bold text-blue-600">
+                        {formatCurrency(
+                          getTotalProductsSum() - (form.watch('discount') || 0)
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Dates Information */}
               <div className="p-2 bg-gray-50 rounded-lg">

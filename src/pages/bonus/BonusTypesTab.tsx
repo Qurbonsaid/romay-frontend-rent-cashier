@@ -89,8 +89,26 @@ export default function BonusTypesTab() {
       toast.success("Bonus turi muvaffaqiyatli o'chirildi")
       setDeleteModalOpen(false)
       setBonusTypeToDelete(null)
-    } catch {
-      toast.error("Bonus turini o'chirishda xatolik yuz berdi")
+    } catch (error: any) {
+      // Backend'dan kelgan error xabarni to'g'ridan-to'g'ri ko'rsatish
+      let errorMessage = "Bonus turini o'chirishda xatolik yuz berdi"
+
+      if (error?.data?.error?.msg) {
+        errorMessage = error.data.error.msg
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.data?.msg) {
+        errorMessage = error.data.msg
+      } else if (error?.data?.error) {
+        errorMessage =
+          typeof error.data.error === 'string'
+            ? error.data.error
+            : JSON.stringify(error.data.error)
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage)
     }
   }
 
@@ -187,7 +205,7 @@ export default function BonusTypesTab() {
                             variant="ghost"
                             size="icon"
                             onClick={(e) => handleEdit(bonusType, e)}
-                            className="h-8 w-8"
+                            className="h-8 w-8 cursor-pointer"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -195,7 +213,7 @@ export default function BonusTypesTab() {
                             variant="ghost"
                             size="icon"
                             onClick={(e) => handleDeleteClick(bonusType._id, e)}
-                            className="h-8 w-8 text-red-600 hover:text-red-700"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

@@ -457,7 +457,7 @@ export default function RepairDetails() {
               <div>
                 <div className="text-sm text-gray-500">Usta maoshi</div>
                 <div className="font-medium">
-                  {formatPrice(service.mechanic_salary)}
+                  {formatPrice(service.mechanic_salary || 0)}
                 </div>
               </div>
             </div>
@@ -528,14 +528,14 @@ export default function RepairDetails() {
             <div className="text-center p-4 bg-green-50 rounded-lg">
               <div className="text-sm text-gray-500">Umumiy summa</div>
               <div className="text-2xl font-bold text-green-600">
-                {formatPrice(service.totalAmount)}
+                {formatPrice(service.totalAmount || 0)}
               </div>
             </div>
 
             <div className="text-center p-4 bg-blue-50 rounded-lg">
               <div className="text-sm text-gray-500">Usta maoshi</div>
               <div className="text-xl font-semibold text-blue-600">
-                {formatPrice(service.mechanic_salary)}
+                {formatPrice(service.mechanic_salary || 0)}
               </div>
             </div>
 
