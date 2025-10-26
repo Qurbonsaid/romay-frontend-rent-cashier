@@ -91,6 +91,7 @@ export interface AddServiceRequest {
   received_date: string
   delivery_date: string
   comment?: string
+  discount?: number
 }
 
 export interface AddServiceResponse {

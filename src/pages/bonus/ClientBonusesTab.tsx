@@ -33,7 +33,6 @@ export default function ClientBonusesTab() {
     data: clientBonusesResponse,
     isLoading,
     isError,
-    error,
   } = useGetClientBonusesQuery({
     search,
     page: currentPage,
@@ -86,8 +85,26 @@ export default function ClientBonusesTab() {
       toast.success("Bonus muvaffaqiyatli o'chirildi")
       setDeleteModalOpen(false)
       setBonusToDelete(null)
-    } catch {
-      toast.error("Bonusni o'chirishda xatolik yuz berdi")
+    } catch (error: any) {
+      // Backend'dan kelgan error xabarni to'g'ridan-to'g'ri ko'rsatish
+      let errorMessage = "Bonusni o'chirishda xatolik yuz berdi"
+
+      if (error?.data?.error?.msg) {
+        errorMessage = error.data.error.msg
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.data?.msg) {
+        errorMessage = error.data.msg
+      } else if (error?.data?.error) {
+        errorMessage =
+          typeof error.data.error === 'string'
+            ? error.data.error
+            : JSON.stringify(error.data.error)
+      } else if (error?.message) {
+        errorMessage = error.message
+      }
+
+      toast.error(errorMessage)
     }
   }
 
@@ -173,13 +190,6 @@ export default function ClientBonusesTab() {
           <p className="text-gray-600 text-center max-w-md">
             Bonuslarni yuklashda xatolik yuz berdi.
           </p>
-          {error && 'status' in error && (
-            <div className="bg-gray-100 px-4 py-2 rounded-md">
-              <p className="text-sm text-gray-700 font-mono">
-                Status: {error.status}
-              </p>
-            </div>
-          )}
         </div>
       ) : clientBonusesData.length === 0 ? (
         <div className="border border-[#E4E4E7] rounded-lg p-8 flex flex-col items-center justify-center space-y-4">
@@ -280,7 +290,7 @@ export default function ClientBonusesTab() {
                             variant="ghost"
                             size="icon"
                             onClick={(e) => handleDeleteClick(bonus._id, e)}
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
