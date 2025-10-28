@@ -6,6 +6,8 @@ import {
   Phone,
   MapPin,
   Calendar,
+  Gift,
+  TrendingUp,
 } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useGetOneClientQuery } from '@/store/clients/clients.api'
@@ -15,6 +17,8 @@ import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
 import { OrderCard } from '@/components/orders/OrderCard'
 import { OrderStatsSummary } from '@/components/orders/OrderStatsSummary'
+import { Skeleton } from '@/components/ui/skeleton'
+import { TablePagination } from '@/components/ui/table-pagination'
 
 function BalanceCell({ value }: { value: number }) {
   const isZero = value === 0
@@ -41,6 +45,8 @@ export default function ClientDetails() {
   const navigate = useNavigate()
   const branch = useGetBranch()
   const [expandedOrders, setExpandedOrders] = useState<Set<string>>(new Set())
+  const [currentPage, setCurrentPage] = useState(1)
+  const [limit, setLimit] = useState(10)
 
   const {
     data: clientResponse,
@@ -57,8 +63,8 @@ export default function ClientDetails() {
   } = useGetAllRentsQuery(
     {
       client: id!,
-      page: 1,
-      limit: 10,
+      page: currentPage,
+      limit: limit,
       branch: typeof branch === 'object' ? branch._id : branch,
     },
     {
@@ -68,6 +74,20 @@ export default function ClientDetails() {
 
   const client = clientResponse?.data // Get client object directly
   const rents = rentsResponse?.data || []
+  const pagination = {
+    current_page: rentsResponse?.current_page || 1,
+    page_count: rentsResponse?.page_count || 1,
+    after_filtering_count: rentsResponse?.after_filtering_count || 0,
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
+
+  const handleItemsPerPageChange = (itemsPerPage: number) => {
+    setLimit(itemsPerPage)
+    setCurrentPage(1)
+  }
 
   const toggleOrderExpansion = (orderId: string) => {
     const newExpanded = new Set(expandedOrders)
@@ -81,15 +101,60 @@ export default function ClientDetails() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-semibold">Mijoz ma'lumotlari</h1>
         </div>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-lg text-gray-500">Yuklanmoqda...</div>
+
+        {/* Skeleton for Client Info Card */}
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center justify-between mb-4 pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-4 w-32" />
+              </div>
+            </div>
+            <div className="text-right">
+              <Skeleton className="h-4 w-16 mb-2" />
+              <Skeleton className="h-6 w-28" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="text-center p-3 bg-gray-50 rounded-lg">
+                <Skeleton className="h-3 w-20 mx-auto mb-2" />
+                <Skeleton className="h-5 w-12 mx-auto" />
+              </div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="h-5 w-32" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Skeleton for Orders Section */}
+        <div className="bg-white rounded-lg border p-4">
+          <Skeleton className="h-6 w-48 mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -107,10 +172,12 @@ export default function ClientDetails() {
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Mijoz topilmadi
+            {isError ? "Ma'lumotlarni yuklashda xatolik" : 'Mijoz topilmadi'}
           </h3>
           <p className="text-gray-500 mb-4">
-            Kechirasiz, bunday mijoz mavjud emas yoki o'chirilgan.
+            {isError
+              ? "Mijoz ma'lumotlarini yuklashda xatolik yuz berdi"
+              : 'Bunday mijoz mavjud emas yoki o`chirilgan'}
           </p>
           <Button onClick={() => navigate('/clients')}>
             Mijozlar ro'yxatiga qaytish
@@ -269,6 +336,78 @@ export default function ClientDetails() {
         </div>
       </div>
 
+      {/* Bonus Information - If exists */}
+      {client.bonus && (
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200 p-3">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Gift className="h-4 w-4 text-amber-600" />
+              <h3 className="font-semibold text-gray-900 text-sm">
+                Bonus ma'lumotlari
+              </h3>
+            </div>
+            <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-xs font-medium">
+              Faol
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Bonus Type Name */}
+            <div className="bg-white/70 backdrop-blur p-2 rounded-lg">
+              <div className="flex items-center gap-1 mb-1">
+                <TrendingUp className="h-3 w-3 text-amber-600" />
+                <span className="text-xs text-gray-600">Bonus turi</span>
+              </div>
+              <p className="text-sm font-bold text-amber-900">
+                {client.bonus.bonus_type?.bonus_name || 'Noma`lum'}
+              </p>
+            </div>
+
+            {/* Target Amount */}
+            <div className="bg-white/70 backdrop-blur p-2 rounded-lg">
+              <span className="text-xs text-gray-600 block mb-1">
+                Maqsad summasi
+              </span>
+              <p className="text-sm font-bold text-gray-900">
+                {(client.bonus.bonus_type?.target_amount || 0).toLocaleString(
+                  'uz-UZ'
+                )}{' '}
+                so'm
+              </p>
+            </div>
+
+            {/* Client Discount */}
+            <div className="bg-white/70 backdrop-blur p-2 rounded-lg">
+              <span className="text-xs text-gray-600 block mb-1">Chegirma</span>
+              <p className="text-sm font-bold text-emerald-600">
+                {(client.bonus.client_discount_amount || 0).toLocaleString(
+                  'uz-UZ'
+                )}{' '}
+                so'm
+              </p>
+            </div>
+
+            {/* Bonus Period */}
+            <div className="bg-white/70 backdrop-blur p-2 rounded-lg">
+              <span className="text-xs text-gray-600 block mb-1">
+                Amal qilish muddati
+              </span>
+              <p className="text-xs font-medium text-gray-900">
+                {client.bonus.start_date
+                  ? new Date(client.bonus.start_date).toLocaleDateString(
+                      'en-GB'
+                    )
+                  : '?'}{' '}
+                -{' '}
+                {client.bonus.end_date
+                  ? new Date(client.bonus.end_date).toLocaleDateString('en-GB')
+                  : '?'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Orders History - Compact */}
       <div className="bg-white rounded-lg border p-4">
         <div className="flex items-center gap-2 mb-4">
@@ -282,13 +421,17 @@ export default function ClientDetails() {
         </div>
 
         {rentsLoading ? (
-          <div className="flex items-center justify-center py-6">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="ml-2 text-gray-600 text-sm">Yuklanmoqda...</span>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-32 w-full" />
+            ))}
           </div>
         ) : rentsError ? (
-          <div className="text-center py-6 text-red-600 text-sm">
-            Buyurtmalar tarixi yuklanmadi. Qaytadan urinib ko'ring.
+          <div className="text-center py-6 space-y-3">
+            <AlertCircle className="h-8 w-8 text-red-500 mx-auto" />
+            <p className="text-red-600 text-sm font-medium">
+              Buyurtmalar yuklanmadi. Iltimos, sahifani yangilang.
+            </p>
           </div>
         ) : rents.length === 0 ? (
           <div className="text-center py-6 text-gray-500 text-sm">
@@ -310,6 +453,18 @@ export default function ClientDetails() {
                 />
               ))}
             </div>
+
+            {/* Pagination */}
+            {pagination.after_filtering_count > 0 && (
+              <TablePagination
+                currentPage={pagination.current_page}
+                totalPages={pagination.page_count}
+                totalItems={pagination.after_filtering_count}
+                itemsPerPage={limit}
+                onPageChange={handlePageChange}
+                onItemsPerPageChange={handleItemsPerPageChange}
+              />
+            )}
           </div>
         )}
       </div>

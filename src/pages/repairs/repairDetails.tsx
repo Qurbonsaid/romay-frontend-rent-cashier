@@ -44,6 +44,11 @@ import {
   Clock,
   AlertCircle,
 } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 export default function RepairDetails() {
   const { id } = useParams<{ id: string }>()
@@ -757,12 +762,28 @@ export default function RepairDetails() {
                                 </div>
                                 {/* Product Name */}
                                 <div>
-                                  <div className="font-medium text-gray-900">
-                                    {typeof productItem.product === 'object' &&
-                                    productItem.product?.name
-                                      ? productItem.product.name
-                                      : "Noma'lum mahsulot"}
-                                  </div>
+                                  <Tooltip>
+                                    <TooltipTrigger>
+                                      <div className="font-medium text-gray-900">
+                                        {typeof productItem.product ===
+                                          'object' && productItem.product?.name
+                                          ? productItem.product?.name.length >
+                                            30
+                                            ? productItem.product.name.slice(
+                                                0,
+                                                30
+                                              ) + '...'
+                                            : productItem.product?.name
+                                          : "Noma'lum mahsulot"}
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      {typeof productItem.product ===
+                                        'object' && productItem.product?.name
+                                        ? productItem.product?.name
+                                        : "Noma'lum mahsulot"}
+                                    </TooltipContent>
+                                  </Tooltip>
                                 </div>
                               </div>
                             </TableCell>

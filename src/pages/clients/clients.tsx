@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { useGetRole } from '@/hooks/use-get-role'
 import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
-import { useState } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import AddClientDialog from './AddClientDialog'
 
 function BalanceCell({ value }: { value: number }) {
@@ -42,6 +42,9 @@ function Clients() {
   const branch = useGetBranch()
   const role = useGetRole()
 
+  // Ref to prevent multiple navigations
+  const hasNavigated = useRef(false)
+
   const {
     data: clientsResponse,
     isLoading,
@@ -53,11 +56,24 @@ function Clients() {
     branch_id: typeof branch === 'object' ? branch._id : branch,
   })
 
-  const clientsData = clientsResponse?.data || []
-  // If navigation passed a search and it returned exactly one client, navigate to its details
-  if (initialSearch && clientsData.length === 1) {
-    navigate(`/clients/${clientsData[0]._id}`)
-  }
+  const clientsData = useMemo(
+    () => clientsResponse?.data || [],
+    [clientsResponse]
+  )
+
+  // Auto-navigate to client details if search returns exactly one result
+  useEffect(() => {
+    if (
+      initialSearch &&
+      clientsData.length === 1 &&
+      !isLoading &&
+      !hasNavigated.current
+    ) {
+      hasNavigated.current = true
+      navigate(`/clients/${clientsData[0]._id}`, { replace: true })
+    }
+  }, [initialSearch, clientsData, isLoading, navigate])
+
   const pagination = {
     current_page: clientsResponse?.pagination?.page || 1,
     page_count: clientsResponse?.pagination?.total_pages || 1,
