@@ -54,6 +54,11 @@ import {
   AlertCircle,
   Search as SearchIcon,
 } from 'lucide-react'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 // Utility functions
 const formatPrice = (price: number): string => {
@@ -937,15 +942,33 @@ export default function RentDetails() {
                                   />
                                 </div>
                                 {/* Product Name */}
-                                <div className="min-w-0 flex-1">
-                                  <div className="font-medium text-gray-900 text-sm truncate">
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="font-medium text-gray-900 text-sm truncate">
+                                        {typeof rentProduct.rent_product ===
+                                          'object' &&
+                                        rentProduct.rent_product?.product?.name
+                                          ? rentProduct.rent_product.product
+                                              .name.length > 30
+                                            ? rentProduct.rent_product.product.name.slice(
+                                                0,
+                                                30
+                                              ) + '...'
+                                            : rentProduct.rent_product.product
+                                                .name
+                                          : "Noma'lum mahsulot"}
+                                      </div>
+                                    </div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
                                     {typeof rentProduct.rent_product ===
                                       'object' &&
                                     rentProduct.rent_product?.product?.name
                                       ? rentProduct.rent_product.product.name
                                       : "Noma'lum mahsulot"}
-                                  </div>
-                                </div>
+                                  </TooltipContent>
+                                </Tooltip>
                               </div>
                             </TableCell>
 

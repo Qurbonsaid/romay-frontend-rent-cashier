@@ -301,9 +301,7 @@ function ProductPage() {
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p className="max-w-xs">
-                                    {getProductName(product)}
-                                  </p>
+                                  {getProductName(product)}
                                 </TooltipContent>
                               </Tooltip>
                             </div>
@@ -493,9 +491,7 @@ function ProductPage() {
                                   </div>
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p className="max-w-xs">
-                                    {getProductName(product)}
-                                  </p>
+                                  {getProductName(product)}
                                 </TooltipContent>
                               </Tooltip>
                             </div>
