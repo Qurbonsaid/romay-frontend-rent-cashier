@@ -28,9 +28,16 @@ interface UseServiceBonusReturn {
  *
  * Features:
  * - Automatically calculates max discount based on client bonus
- * - Validates bonus eligibility (type, date range, target amount)
+ * - Validates bonus eligibility (type, date range)
+ * - Validates discount is not greater than total products sum
+ * - Validates discount is not greater than max bonus discount
  * - Handles discount input formatting
  * - Provides validation methods
+ *
+ * New Logic (Updated):
+ * - No target amount check required
+ * - Bonus discount is available if client has active bonus
+ * - Discount can be 0 to min(maxDiscount, totalProductsSum)
  */
 export function useServiceBonus({
   selectedClient,
@@ -81,32 +88,17 @@ export function useServiceBonus({
       return
     }
 
-    // 5. Mahsulotlar jami summani hisoblash
-    const totalProductsSum = selectedProducts.reduce((total, item) => {
-      const price = item.product_change_price || 0
-      return total + item.product_count * price
-    }, 0)
-
-    const targetAmount = bonus.bonus_type.target_amount || 0
+    // 5. Bonus miqdorini olish
     const maxDiscountAmount = bonus.client_discount_amount || 0
 
-    // 6. Jami summa maqsad summaga yetganligi tekshiruvi
-    if (totalProductsSum >= targetAmount && maxDiscountAmount > 0) {
+    // 6. Bonus miqdori 0 dan katta bo'lsa, maksimal chegirmani o'rnatish
+    if (maxDiscountAmount > 0) {
       // Maksimal chegirmani o'rnatish (faqat o'zgargan bo'lsa)
       if (maxDiscount !== maxDiscountAmount) {
         setMaxDiscount(maxDiscountAmount)
-
-        // Chegirmani avtomatik o'rnatish FAQAT birinchi marta
-        // Foydalanuvchi input'ga tegmagan bo'lsa
-        if (discountDisplay === '') {
-          setDiscountDisplay(
-            formatNumberInput(maxDiscountAmount.toString()).display
-          )
-          onDiscountChange?.(maxDiscountAmount)
-        }
       }
     } else {
-      // Maqsad summaga yetmagan yoki bonus yo'q
+      // Bonus miqdori 0 yoki noto'g'ri
       resetBonusDiscount()
     }
   }, [
@@ -115,7 +107,6 @@ export function useServiceBonus({
     maxDiscount,
     onDiscountChange,
     resetBonusDiscount,
-    discountDisplay,
   ])
 
   // Handle discount input change
@@ -151,11 +142,27 @@ export function useServiceBonus({
   // Validate discount amount
   const validateDiscount = useCallback(
     (discount: number): { isValid: boolean; message?: string } => {
-      if (maxDiscount === 0) {
+      // Agar chegirma 0 bo'lsa, hech qanday xato yo'q
+      if (discount === 0) {
         return { isValid: true }
       }
 
-      if (discount > maxDiscount) {
+      // Mahsulotlar jami summani hisoblash
+      const totalProductsSum = selectedProducts.reduce((total, item) => {
+        const price = item.product_change_price || 0
+        return total + item.product_count * price
+      }, 0)
+
+      // 1. Chegirma jami summadan katta bo'lmasligi kerak
+      if (discount > totalProductsSum) {
+        return {
+          isValid: false,
+          message: `Chegirma jami summadan katta bo'lmasligi kerak! Jami: ${totalProductsSum.toLocaleString('uz-UZ')} so'm`,
+        }
+      }
+
+      // 2. Agar bonus bor bo'lsa, maksimal chegirmadan oshmasligi kerak
+      if (maxDiscount > 0 && discount > maxDiscount) {
         return {
           isValid: false,
           message: `Chegirma maksimal miqdordan oshmasligi kerak! Maksimal: ${maxDiscount.toLocaleString('uz-UZ')} so'm`,
@@ -164,7 +171,7 @@ export function useServiceBonus({
 
       return { isValid: true }
     },
-    [maxDiscount]
+    [maxDiscount, selectedProducts]
   )
 
   return {

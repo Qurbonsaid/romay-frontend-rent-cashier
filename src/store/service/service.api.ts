@@ -18,7 +18,7 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'POST',
         body,
       }),
-      invalidatesTags: ['services', 'products'],
+      invalidatesTags: ['services', 'products', 'clients', 'balance'],
     }),
     getAllServices: builder.query<
       GetAllServicesResponse,
@@ -60,21 +60,21 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: data,
       }),
-      invalidatesTags: ['services', 'products'],
+      invalidatesTags: ['services', 'products', 'clients', 'balance'],
     }),
     deleteService: builder.mutation<DeleteServiceResponse, string>({
       query: (id) => ({
         url: `/service/delete/${id}`,
         method: 'DELETE',
       }),
-      invalidatesTags: ['services', 'products'],
+      invalidatesTags: ['services', 'products', 'clients', 'balance'],
     }),
     cancelService: builder.mutation<UpdateServiceResponse, string>({
       query: (id) => ({
         url: `/service/cancel/${id}`,
         method: 'PUT',
       }),
-      invalidatesTags: ['services', 'products'],
+      invalidatesTags: ['services', 'products', 'clients', 'balance'],
     }),
     completeService: builder.mutation<
       UpdateServiceResponse,
@@ -85,7 +85,7 @@ export const serviceApi = baseApi.injectEndpoints({
         method: 'PUT',
         body: { payments },
       }),
-      invalidatesTags: ['services', 'products', 'balance'],
+      invalidatesTags: ['services', 'products', 'balance', 'clients'],
     }),
   }),
 })
