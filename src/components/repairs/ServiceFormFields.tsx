@@ -2,7 +2,7 @@ import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { cn } from '@/lib/utils'
-import { formatNumberInput } from '@/utils/numberFormat'
+import { formatCurrency, formatNumberInput } from '@/utils/numberFormat'
 
 // UI Components
 import {
@@ -49,6 +49,7 @@ interface ServiceFormFieldsProps {
   clientSearch: string
   setClientSearch: (value: string) => void
   setSelectedClient: (client: Client | null) => void
+  selectedClient: Client | null
 
   // Mechanics data
   mechanicsData?: { data: Mechanic[] }
@@ -66,6 +67,9 @@ interface ServiceFormFieldsProps {
   discountDisplay?: string
   onDiscountChange?: (value: string) => void
   onDiscountBlur?: (currentValue: number) => void
+
+  // Total products sum for validation
+  totalProductsSum?: number
 }
 
 export default function ServiceFormFields({
@@ -75,6 +79,7 @@ export default function ServiceFormFields({
   clientSearch,
   setClientSearch,
   setSelectedClient,
+  selectedClient,
   mechanicsData,
   mechanicsLoading,
   salaryDisplay,
@@ -84,6 +89,7 @@ export default function ServiceFormFields({
   discountDisplay = '',
   onDiscountChange,
   onDiscountBlur,
+  totalProductsSum = 0,
 }: ServiceFormFieldsProps) {
   return (
     <>
@@ -460,42 +466,77 @@ export default function ServiceFormFields({
         <FormField
           control={form.control}
           name="discount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Bonus chegirma: {maxDiscount.toLocaleString('uz-UZ')} so'm
-              </FormLabel>
-              <FormControl>
-                <Input
-                  type="text"
-                  placeholder="0"
-                  className={cn(
-                    maxDiscount > 0 && (field.value || 0) > maxDiscount
-                      ? 'border-red-500 focus-visible:ring-red-500'
-                      : ''
+          render={({ field }) => {
+            const currentDiscount = field.value || 0
+            // Real maksimal chegirma - jami summa va bonus orasidagi eng kichigi
+            const maxAllowedDiscount = Math.min(maxDiscount, totalProductsSum)
+            // Chegirma maksimal ruxsat etilgan qiymatdan oshganligi
+            const isExceedingLimit = currentDiscount > maxAllowedDiscount
+            // Aniq qaysi limitni oshganligi
+            const isExceedingTotal = currentDiscount > totalProductsSum
+            const isExceedingBonus = currentDiscount > maxDiscount
+
+            return (
+              <FormItem>
+                <FormLabel>
+                  Bonus chegirma (maksimal:{' '}
+                  {maxAllowedDiscount.toLocaleString('uz-UZ')} so'm)
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="text"
+                    placeholder="0"
+                    disabled={totalProductsSum === 0}
+                    className={cn(
+                      isExceedingLimit &&
+                        'border-red-500 focus-visible:ring-red-500'
+                    )}
+                    value={
+                      discountDisplay ||
+                      (currentDiscount > 0
+                        ? formatNumberInput(currentDiscount.toString()).display
+                        : '')
+                    }
+                    onChange={(e) => {
+                      onDiscountChange?.(e.target.value)
+                    }}
+                    onBlur={() => {
+                      onDiscountBlur?.(currentDiscount)
+                    }}
+                  />
+                </FormControl>
+                {isExceedingTotal && (
+                  <p className="text-sm text-red-600">
+                    Chegirma jami summadan (
+                    {totalProductsSum.toLocaleString('uz-UZ')} so'm) katta
+                    bo'lmasligi kerak!
+                  </p>
+                )}
+                {!isExceedingTotal && isExceedingBonus && (
+                  <p className="text-sm text-red-600">
+                    Chegirma bonusdagi qoldiq miqdordan (
+                    {maxDiscount.toLocaleString('uz-UZ')} so'm) oshmasligi
+                    kerak!
+                  </p>
+                )}
+                {!isExceedingLimit &&
+                  maxDiscount > 0 &&
+                  totalProductsSum > 0 && (
+                    <p className="text-sm text-gray-600">
+                      Chegirma: {formatCurrency(maxDiscount)} qoldi
+                    </p>
                   )}
-                  value={
-                    discountDisplay ||
-                    ((field.value || 0) > 0
-                      ? formatNumberInput((field.value || 0).toString()).display
-                      : '')
-                  }
-                  onChange={(e) => {
-                    onDiscountChange?.(e.target.value)
-                  }}
-                  onBlur={() => {
-                    onDiscountBlur?.(field.value || 0)
-                  }}
-                />
-              </FormControl>
-              {maxDiscount > 0 && (field.value || 0) > maxDiscount && (
-                <p className="text-sm text-red-600">
-                  ⚠️ Chegirma maksimal miqdordan oshmasligi kerak!
-                </p>
-              )}
-              <FormMessage />
-            </FormItem>
-          )}
+                {selectedClient &&
+                  maxDiscount > 0 &&
+                  totalProductsSum === 0 && (
+                    <p className="text-sm text-gray-600">
+                      Bonusdan foydalanish uchun mahsulot tanlang
+                    </p>
+                  )}
+                <FormMessage />
+              </FormItem>
+            )
+          }}
         />
       )}
     </>

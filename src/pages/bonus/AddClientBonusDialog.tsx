@@ -185,11 +185,11 @@ export default function AddClientBonusDialog({ open, setOpen }: Props) {
                         ) : (
                           clients.map((client) => (
                             <SelectItem key={client._id} value={client._id}>
-                              <div className="flex flex-col">
+                              <div className="flex items-center gap-1">
                                 <span className="font-medium">
-                                  {client.username}
+                                  {client.username}:
                                 </span>
-                                <span className="text-xs text-gray-500">
+                                <span className="text-sm">
                                   {client.phone || "Telefon yo'q"}
                                 </span>
                               </div>

@@ -296,7 +296,7 @@ export default function AddService() {
         return
       }
 
-      // Check if discount exceeds maxDiscount
+      // Check if discount is valid (not greater than total sum and max discount)
       const discountValidation = validateDiscount(data.discount || 0)
       if (!discountValidation.isValid) {
         toast.error(discountValidation.message!)
@@ -412,6 +412,7 @@ export default function AddService() {
                   clientSearch={clientSearch}
                   setClientSearch={setClientSearch}
                   setSelectedClient={setSelectedClient}
+                  selectedClient={selectedClient}
                   mechanicsData={mechanicsData}
                   mechanicsLoading={mechanicsLoading}
                   salaryDisplay={salaryDisplay}
@@ -421,6 +422,7 @@ export default function AddService() {
                   discountDisplay={discountDisplay}
                   onDiscountChange={handleDiscountChange}
                   onDiscountBlur={handleDiscountBlur}
+                  totalProductsSum={getTotalProductsSum()}
                 />
               </form>
             </Form>

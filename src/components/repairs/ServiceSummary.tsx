@@ -147,36 +147,43 @@ export default function ServiceSummary({
             )}
           </div>
 
-          {/* Discount Information - Only shown when discount > 0 and bonus exists */}
-          {maxDiscount > 0 && selectedClient?.bonus?.bonus_type && (
-            <div className="p-2 bg-gray-50 rounded-lg">
-              <h4 className="font-medium text-sm mb-2">Bonus chegirma:</h4>
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Bonus turi</span>
-                  <span className="text-sm font-medium">
-                    {selectedClient.bonus.bonus_type?.bonus_name || '-'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Maqsad summa</span>
-                  <span className="text-sm font-medium">
-                    {formatCurrency(
-                      selectedClient.bonus.bonus_type?.target_amount || 0
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">
-                    Maksimal chegirma
-                  </span>
-                  <span className="text-sm font-medium">
-                    {formatCurrency(maxDiscount)}
-                  </span>
-                </div>
+          <div className="p-2 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-sm mb-2">Bonus ma'lumotlari:</h4>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Holati</span>
+                <span className="text-sm font-medium text-gray-500">
+                  {selectedClient?.bonus
+                    ? maxDiscount > 0
+                      ? 'Mavjud'
+                      : 'Tugagan'
+                    : 'Mavjud emas'}
+                </span>
               </div>
+              {/* Active Bonus - shown when discount > 0 and bonus exists */}
+              {selectedClient?.bonus?.bonus_type && (
+                <>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Bonus turi</span>
+                    <span className="text-sm font-medium">
+                      {selectedClient.bonus.bonus_type?.bonus_name || '-'}
+                    </span>
+                  </div>
+                  {maxDiscount > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Chegirma</span>
+                      <span className="text-sm font-medium">
+                        {formatCurrency(
+                          selectedClient.bonus.bonus_type?.discount_amount || 0
+                        )}{' '}
+                        dan {formatCurrency(maxDiscount)} qoldi
+                      </span>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Dates Information */}
           <div className="p-2 bg-gray-50 rounded-lg">
