@@ -69,16 +69,48 @@ export interface ClientBonus {
     bonus_name: string
     target_amount: number
     discount_amount: number
+    branch: string
+    created_at: string
+    updated_at: string
   }
   client: {
+    debt: {
+      sale_amount: number
+      total_amount: number
+      currency: string
+    }
     _id: string
     username: string
+    description: string
     phone: string
+    profession: string
+    birth_date: string
+    branch_id: string
+    address: string
+    customer_tier: string
+    sales_count: number
+    created_at: string
+    updated_at: string
+    service_count: number
+    rent_count: number
+    total_rent_amount: number
+    total_sale_amount: number
+    total_service_amount: number
+    bonus: string
   }
   branch: {
     _id: string
     name: string
+    address: string
+    manager_ids: string[]
+    sales_balance: number
+    service_balance: number
+    another_branch_incoming_transfer_balance: number
+    total_balance: number
+    created_at: string
+    updated_at: string
   }
+  client_discount_amount: number
   type: 'SERVICE' | 'SALE' | 'RENT'
   start_date: string
   end_date: string
