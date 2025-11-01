@@ -12,8 +12,10 @@ import { useGetRole } from '@/hooks/use-get-role'
 import { useGetBranch } from '@/hooks/use-get-branch'
 import { CheckRole } from '@/utils/checkRole'
 import AddClientBonusDialog from './AddClientBonusDialog'
+import ClientBonusDetailsModal from './ClientBonusDetailsModal'
 import ConfirmDeleteModal from '@/components/ConfirmDeleteModal'
 import { toast } from 'sonner'
+import type { ClientBonus } from '@/types/bonus'
 
 export default function ClientBonusesTab() {
   const role = useGetRole()
@@ -26,6 +28,8 @@ export default function ClientBonusesTab() {
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [bonusToDelete, setBonusToDelete] = useState<string | null>(null)
+  const [selectedBonus, setSelectedBonus] = useState<ClientBonus | null>(null)
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
 
   const branchId = typeof branch === 'object' ? branch._id : branch
 
@@ -77,6 +81,16 @@ export default function ClientBonusesTab() {
     setDeleteModalOpen(true)
   }
 
+  const handleBonusClick = (bonus: ClientBonus) => {
+    setSelectedBonus(bonus)
+    setDetailsModalOpen(true)
+  }
+
+  const handleCloseDetailsModal = () => {
+    setDetailsModalOpen(false)
+    setSelectedBonus(null)
+  }
+
   const handleDeleteConfirm = async () => {
     if (!bonusToDelete) return
 
@@ -106,10 +120,6 @@ export default function ClientBonusesTab() {
 
       toast.error(errorMessage)
     }
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-GB')
   }
 
   const getTypeLabel = (type: string) => {
@@ -209,11 +219,8 @@ export default function ClientBonusesTab() {
                     Bonus turi
                   </th>
                   <th className="px-6 py-3 text-left font-medium">Tur</th>
-                  <th className="px-6 py-3 text-left font-medium">
-                    Boshlanish
-                  </th>
-                  <th className="px-6 py-3 text-left font-medium">Tugash</th>
                   <th className="px-6 py-3 text-left font-medium">Chegirma</th>
+                  <th className="px-6 py-3 text-left font-medium">Qolgan</th>
                   <th className="px-6 py-3 text-left font-medium">Holat</th>
                   {CheckRole(role, ['ceo', 'manager', 'rent_cashier']) && (
                     <th className="px-6 py-3 text-center font-medium">
@@ -228,7 +235,8 @@ export default function ClientBonusesTab() {
                   return (
                     <tr
                       key={bonus._id}
-                      className={`hover:bg-[#F9F9F9] transition-colors ${expired ? 'opacity-60' : ''}`}
+                      className={`hover:bg-[#F9F9F9] transition-colors cursor-pointer ${expired ? 'opacity-60' : ''}`}
+                      onClick={() => handleBonusClick(bonus)}
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-[#18181B]">
@@ -254,23 +262,22 @@ export default function ClientBonusesTab() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-[#18181B]">
-                          {formatDate(bonus.start_date)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div
-                          className={`text-sm ${expired ? 'text-red-600' : 'text-[#18181B]'}`}
-                        >
-                          {formatDate(bonus.end_date)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-emerald-600 font-medium">
                           {bonus.bonus_type?.discount_amount?.toLocaleString(
                             'uz-UZ'
                           ) || 0}{' '}
                           so'm
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div
+                          className={`text-sm font-medium ${bonus.client_discount_amount > 0 ? 'text-emerald-600' : 'text-yellow-600'}`}
+                        >
+                          {bonus?.client_discount_amount > 0
+                            ? (bonus?.client_discount_amount?.toLocaleString(
+                                'uz-UZ'
+                              ) || 0) + " so'm"
+                            : 'Tugagan'}{' '}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -316,6 +323,12 @@ export default function ClientBonusesTab() {
       )}
 
       <AddClientBonusDialog open={addDialogOpen} setOpen={setAddDialogOpen} />
+
+      <ClientBonusDetailsModal
+        isOpen={detailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        bonus={selectedBonus}
+      />
 
       <ConfirmDeleteModal
         isOpen={deleteModalOpen}
