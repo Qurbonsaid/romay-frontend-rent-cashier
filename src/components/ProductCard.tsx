@@ -41,8 +41,8 @@ export default function ProductCard({
     }
   }
 
-  const formatPrice = (price: number, currency: string) => {
-    return `${price.toLocaleString()} ${currency}`
+  const formatPrice = (price: number) => {
+    return `${price.toLocaleString('uz-UZ')} so'm`
   }
 
   const totalPrice = product.product.price * quantity
@@ -73,11 +73,11 @@ export default function ProductCard({
           </TooltipContent>
         </Tooltip>
         <p className="text-sm text-gray-500 mt-1">
-          {formatPrice(product.product.price, product.product.currency)}
+          {formatPrice(product.product.price)}
         </p>
         {/* Show total price */}
         <p className="text-sm font-medium text-blue-600 mt-1">
-          Jami: {formatPrice(totalPrice, product.product.currency)}
+          Jami: {formatPrice(totalPrice)}
         </p>
       </div>
 

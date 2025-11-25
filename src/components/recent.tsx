@@ -71,7 +71,7 @@ export default function Recent({
                       {transaction.seller}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      ${transaction.amount.toFixed(2)}
+                      {transaction.amount.toLocaleString('uz-UZ')} so'm
                     </td>
                   </tr>
                 ))}

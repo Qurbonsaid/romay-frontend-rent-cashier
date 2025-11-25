@@ -169,9 +169,13 @@ export default function AddService() {
     handleDiscountChange,
     handleDiscountBlur,
     validateDiscount,
+    bonusStatus,
+    clientAmount,
+    targetAmount,
   } = useServiceBonus({
     selectedClient,
     selectedProducts: selectedProductsList,
+    bonusType: 'SERVICE',
     onDiscountChange: (discount) => {
       form.setValue('discount', discount, { shouldValidate: false })
     },
@@ -438,6 +442,9 @@ export default function AddService() {
           selectedProductsCount={selectedProductsList.length}
           maxDiscount={maxDiscount}
           currentDiscount={form.watch('discount') || 0}
+          bonusStatus={bonusStatus}
+          clientAmount={clientAmount}
+          targetAmount={targetAmount}
           isSubmitting={isSubmitting}
           canSubmit={!!selectedClient && selectedProductsList.length > 0}
         />

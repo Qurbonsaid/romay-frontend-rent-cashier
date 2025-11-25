@@ -338,7 +338,7 @@ export default function ClientDetails() {
 
       {/* Bonus Information - If exists */}
       {client.bonus && (
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200 p-3">
+        <div className="bg-linear-to-br from-amber-50 to-orange-50 rounded-lg border border-amber-200 p-3">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Gift className="h-4 w-4 text-amber-600" />
@@ -361,6 +361,21 @@ export default function ClientDetails() {
               <p className="text-sm font-bold text-amber-900">
                 {client.bonus.bonus_type?.bonus_name || 'Noma`lum'}
               </p>
+              <span
+                className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded mt-1 ${
+                  client.bonus.type === 'SERVICE'
+                    ? 'bg-purple-100 text-purple-800'
+                    : client.bonus.type === 'RENT'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-green-100 text-green-800'
+                }`}
+              >
+                {client.bonus.type === 'SERVICE'
+                  ? 'Servis'
+                  : client.bonus.type === 'RENT'
+                    ? 'Ijara'
+                    : 'Sotuv'}
+              </span>
             </div>
 
             {/* Target Amount */}

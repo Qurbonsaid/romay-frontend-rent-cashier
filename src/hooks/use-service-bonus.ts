@@ -10,6 +10,7 @@ interface SelectedProduct {
 interface UseServiceBonusProps {
   selectedClient: Client | null
   selectedProducts: SelectedProduct[]
+  bonusType: 'SERVICE' | 'RENT' | 'SALE'
   onDiscountChange?: (discount: number) => void
 }
 
@@ -21,31 +22,53 @@ interface UseServiceBonusReturn {
   handleDiscountChange: (inputValue: string) => void
   handleDiscountBlur: (currentValue: number) => void
   validateDiscount: (discount: number) => { isValid: boolean; message?: string }
+  bonusStatus:
+    | 'none'
+    | 'type_mismatch'
+    | 'expired'
+    | 'insufficient_amount'
+    | 'depleted'
+    | 'active'
+  clientAmount: number
+  targetAmount: number
 }
 
 /**
- * Custom hook for managing service bonus/discount logic
+ * Custom hook for managing bonus/discount logic for SERVICE, RENT, SALE
  *
  * Features:
  * - Automatically calculates max discount based on client bonus
- * - Validates bonus eligibility (type, date range)
+ * - Validates bonus eligibility (type, date range, target amount)
  * - Validates discount is not greater than total products sum
  * - Validates discount is not greater than max bonus discount
  * - Handles discount input formatting
  * - Provides validation methods
+ * - Returns bonus status for UI display
  *
- * New Logic (Updated):
- * - No target amount check required
- * - Bonus discount is available if client has active bonus
+ * Logic:
+ * - Bonus must exist and match the bonusType (SERVICE/RENT/SALE)
+ * - Bonus must be within valid date range
+ * - Client's amount for that type must reach target_amount
  * - Discount can be 0 to min(maxDiscount, totalProductsSum)
  */
 export function useServiceBonus({
   selectedClient,
   selectedProducts,
+  bonusType,
   onDiscountChange,
 }: UseServiceBonusProps): UseServiceBonusReturn {
   const [maxDiscount, setMaxDiscount] = useState(0)
   const [discountDisplay, setDiscountDisplay] = useState('')
+  const [bonusStatus, setBonusStatus] = useState<
+    | 'none'
+    | 'type_mismatch'
+    | 'expired'
+    | 'insufficient_amount'
+    | 'depleted'
+    | 'active'
+  >('none')
+  const [clientAmount, setClientAmount] = useState(0)
+  const [targetAmount, setTargetAmount] = useState(0)
 
   // Helper function to reset bonus discount
   const resetBonusDiscount = useCallback(() => {
@@ -60,6 +83,9 @@ export function useServiceBonus({
   useEffect(() => {
     // 1. Mijozda bonus yo'qligi yoki bonus ob'ekti noto'g'ri bo'lsa
     if (!selectedClient || !selectedClient.bonus) {
+      setBonusStatus('none')
+      setClientAmount(0)
+      setTargetAmount(0)
       resetBonusDiscount()
       return
     }
@@ -68,12 +94,18 @@ export function useServiceBonus({
 
     // 2. Bonus_type mavjudligini tekshirish (API dan kelmagan bo'lishi mumkin)
     if (!bonus.bonus_type || typeof bonus.bonus_type !== 'object') {
+      setBonusStatus('none')
+      setClientAmount(0)
+      setTargetAmount(0)
       resetBonusDiscount()
       return
     }
 
-    // 3. Bonus turi SERVICE emasligini tekshirish
-    if (bonus.type !== 'SERVICE') {
+    // 3. Bonus turi mos emasligini tekshirish (masalan: SERVICE kerak, lekin RENT yoki SALE)
+    if (bonus.type !== bonusType) {
+      setBonusStatus('type_mismatch')
+      setClientAmount(0)
+      setTargetAmount(0)
       resetBonusDiscount()
       return
     }
@@ -84,26 +116,56 @@ export function useServiceBonus({
     const endDate = new Date(bonus.end_date)
 
     if (now < startDate || now > endDate) {
+      setBonusStatus('expired')
+      setClientAmount(0)
+      setTargetAmount(0)
       resetBonusDiscount()
       return
     }
 
-    // 5. Bonus miqdorini olish
+    // 5. Mijozning savdosi target_amount ga yetganligini tekshirish (bonus type ga qarab)
+    const bonusTargetAmount = bonus.bonus_type?.target_amount || 0
+    let bonusClientAmount = 0
+
+    // Bonus type ga qarab to'g'ri amount ni olish
+    if (bonusType === 'SERVICE') {
+      bonusClientAmount = selectedClient.total_service_amount || 0
+    } else if (bonusType === 'RENT') {
+      bonusClientAmount = selectedClient.total_rent_amount || 0
+    } else if (bonusType === 'SALE') {
+      bonusClientAmount = selectedClient.total_sale_amount || 0
+    }
+
+    // State'larni yangilash (UI uchun)
+    setClientAmount(bonusClientAmount)
+    setTargetAmount(bonusTargetAmount)
+
+    if (bonusClientAmount < bonusTargetAmount) {
+      // Mijoz hali yetarli savdo qilmagan
+      setBonusStatus('insufficient_amount')
+      resetBonusDiscount()
+      return
+    }
+
+    // 6. Bonus miqdorini olish (mijozga qolgan chegirma)
     const maxDiscountAmount = bonus.client_discount_amount || 0
 
-    // 6. Bonus miqdori 0 dan katta bo'lsa, maksimal chegirmani o'rnatish
+    // 7. Bonus miqdori 0 dan katta bo'lsa, maksimal chegirmani o'rnatish
     if (maxDiscountAmount > 0) {
+      setBonusStatus('active')
       // Maksimal chegirmani o'rnatish (faqat o'zgargan bo'lsa)
       if (maxDiscount !== maxDiscountAmount) {
         setMaxDiscount(maxDiscountAmount)
       }
     } else {
-      // Bonus miqdori 0 yoki noto'g'ri
+      // Bonus mavjud, lekin mijoz chegirmasini to'liq ishlatgan (tugagan)
+      setBonusStatus('depleted')
       resetBonusDiscount()
     }
   }, [
     selectedClient,
     selectedProducts,
+    bonusType,
     maxDiscount,
     onDiscountChange,
     resetBonusDiscount,
@@ -182,5 +244,8 @@ export function useServiceBonus({
     handleDiscountChange,
     handleDiscountBlur,
     validateDiscount,
+    bonusStatus,
+    clientAmount,
+    targetAmount,
   }
 }

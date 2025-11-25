@@ -7,6 +7,7 @@ describe('useServiceBonus', () => {
     _id: '123',
     username: 'Test User',
     phone: '+998901234567',
+    total_service_amount: 1500000, // Client has enough service amount
     bonus: {
       type: 'SERVICE',
       bonus_type: {
@@ -35,10 +36,12 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: mockClient,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
       })
     )
 
     expect(result.current.maxDiscount).toBe(50000)
+    expect(result.current.bonusStatus).toBe('active')
   })
 
   it('should reset discount when client has no bonus', () => {
@@ -47,10 +50,12 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: clientWithoutBonus as Client,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
       })
     )
 
     expect(result.current.maxDiscount).toBe(0)
+    expect(result.current.bonusStatus).toBe('none')
   })
 
   it('should reset discount when bonus type is not SERVICE', () => {
@@ -63,28 +68,53 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: clientWithWrongType,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
       })
     )
 
     expect(result.current.maxDiscount).toBe(0)
+    expect(result.current.bonusStatus).toBe('type_mismatch')
   })
 
-  it('should reset discount when total amount is below target', () => {
-    const smallProducts = [
-      {
-        product_count: 1,
-        product_change_price: 100000,
-      },
-    ]
+  it('should reset discount when client amount is below target', () => {
+    const clientWithLowAmount = {
+      ...mockClient,
+      total_service_amount: 500000, // Below target of 1000000
+    } as Client
 
     const { result } = renderHook(() =>
       useServiceBonus({
-        selectedClient: mockClient,
-        selectedProducts: smallProducts,
+        selectedClient: clientWithLowAmount,
+        selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
       })
     )
 
     expect(result.current.maxDiscount).toBe(0)
+    expect(result.current.bonusStatus).toBe('insufficient_amount')
+    expect(result.current.clientAmount).toBe(500000)
+    expect(result.current.targetAmount).toBe(1000000)
+  })
+
+  it('should set depleted status when client_discount_amount is 0', () => {
+    const clientWithDepletedBonus = {
+      ...mockClient,
+      bonus: {
+        ...mockClient.bonus,
+        client_discount_amount: 0, // Bonus tugagan
+      },
+    } as Client
+
+    const { result } = renderHook(() =>
+      useServiceBonus({
+        selectedClient: clientWithDepletedBonus,
+        selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
+      })
+    )
+
+    expect(result.current.maxDiscount).toBe(0)
+    expect(result.current.bonusStatus).toBe('depleted')
   })
 
   it('should validate discount correctly', () => {
@@ -92,6 +122,7 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: mockClient,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
       })
     )
 
@@ -111,6 +142,7 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: mockClient,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
         onDiscountChange: mockOnDiscountChange,
       })
     )
@@ -128,6 +160,7 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: mockClient,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
         onDiscountChange: mockOnDiscountChange,
       })
     )
@@ -154,9 +187,11 @@ describe('useServiceBonus', () => {
       useServiceBonus({
         selectedClient: expiredClient,
         selectedProducts: mockProducts,
+        bonusType: 'SERVICE',
       })
     )
 
     expect(result.current.maxDiscount).toBe(0)
+    expect(result.current.bonusStatus).toBe('expired')
   })
 })

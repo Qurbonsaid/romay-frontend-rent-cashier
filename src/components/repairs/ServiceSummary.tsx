@@ -28,6 +28,17 @@ interface ServiceSummaryProps {
   maxDiscount: number
   currentDiscount: number
 
+  // Bonus status
+  bonusStatus?:
+    | 'none'
+    | 'type_mismatch'
+    | 'expired'
+    | 'insufficient_amount'
+    | 'depleted'
+    | 'active'
+  clientAmount?: number
+  targetAmount?: number
+
   // Submit button state
   isSubmitting: boolean
   canSubmit: boolean
@@ -41,6 +52,7 @@ export default function ServiceSummary({
   selectedProductsCount,
   maxDiscount,
   currentDiscount,
+  bonusStatus = 'none',
   isSubmitting,
   canSubmit,
 }: ServiceSummaryProps) {
@@ -53,6 +65,27 @@ export default function ServiceSummary({
     mechanicId && mechanicId !== 'none'
       ? mechanicsData?.data.find((m) => m._id === mechanicId)
       : null
+
+  // Get bonus status display text and color
+  const getBonusStatusDisplay = () => {
+    switch (bonusStatus) {
+      case 'active':
+        return 'Mavjud'
+      case 'type_mismatch':
+        return 'Mavjud emas'
+      case 'expired':
+        return 'Muddati tugagan'
+      case 'insufficient_amount':
+        return 'Savdo yetarli emas'
+      case 'depleted':
+        return 'Tugagan'
+      case 'none':
+      default:
+        return 'Mavjud emas'
+    }
+  }
+
+  const bonusStatusDisplay = getBonusStatusDisplay()
 
   return (
     <Card>
@@ -149,27 +182,28 @@ export default function ServiceSummary({
 
           <div className="p-2 bg-gray-50 rounded-lg">
             <h4 className="font-medium text-sm mb-2">Bonus ma'lumotlari:</h4>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Holati</span>
-                <span className="text-sm font-medium text-gray-500">
-                  {selectedClient?.bonus
-                    ? maxDiscount > 0
-                      ? 'Mavjud'
-                      : 'Tugagan'
-                    : 'Mavjud emas'}
+                <span className={`text-sm font-medium ${bonusStatusDisplay}`}>
+                  {bonusStatusDisplay}
                 </span>
               </div>
-              {/* Active Bonus - shown when discount > 0 and bonus exists */}
+
+              {/* Show bonus details if bonus exists */}
               {selectedClient?.bonus?.bonus_type && (
                 <>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-600">Bonus turi</span>
-                    <span className="text-sm font-medium">
-                      {selectedClient.bonus.bonus_type?.bonus_name || '-'}
-                    </span>
-                  </div>
-                  {maxDiscount > 0 && (
+                  {selectedClient.bonus.type === 'SERVICE' && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Bonus turi</span>
+                      <span className="text-sm font-medium">
+                        {selectedClient.bonus.bonus_type?.bonus_name || '-'}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Show available discount when active */}
+                  {bonusStatus === 'active' && maxDiscount > 0 && (
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Chegirma</span>
                       <span className="text-sm font-medium">

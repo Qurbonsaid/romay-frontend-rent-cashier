@@ -248,7 +248,7 @@ export default function ProductSelectionTable({
                         </td>
                         <td className="px-4 py-4 text-sm text-gray-900">
                           {product.product.price
-                            ? `${product.product.price.toLocaleString()} ${product.product.currency || "so'm"}`
+                            ? `${product.product.price.toLocaleString('uz-UZ')} so'm`
                             : "Narx ko'rsatilmagan"}
                         </td>
                         <td className="px-4 py-4">

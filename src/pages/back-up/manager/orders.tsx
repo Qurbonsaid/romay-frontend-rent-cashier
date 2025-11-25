@@ -88,7 +88,7 @@ export default function ManagerOrdersPage() {
                     {order.items} ta
                   </td>
                   <td className="px-4 py-3 text-sm text-[#18181B] font-medium">
-                    {parseFloat(order.amount).toLocaleString('en-US')} UZS
+                    {parseFloat(order.amount).toLocaleString('uz-UZ')} so'm
                   </td>
                   <td className="px-4 py-3 text-sm text-[#18181B]">
                     {order.date}

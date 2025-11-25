@@ -57,6 +57,77 @@ export default function ClientBonusDetailsModal({
     return new Date(endDate) < new Date()
   }
 
+  // Mijozning savdosi bonusga yetarli emasligini tekshirish (bonus type ga qarab)
+  const isSalesInsufficient = () => {
+    const targetAmount = bonus.bonus_type?.target_amount || 0
+    let clientAmount = 0
+
+    // Bonus type ga qarab to'g'ri amount ni olish
+    if (bonus.type === 'SERVICE') {
+      clientAmount = bonus.client?.total_service_amount || 0
+    } else if (bonus.type === 'RENT') {
+      clientAmount = bonus.client?.total_rent_amount || 0
+    } else if (bonus.type === 'SALE') {
+      clientAmount = bonus.client?.total_sale_amount || 0
+    }
+
+    return clientAmount < targetAmount
+  }
+
+  // Bonus holatini aniqlash
+  const getBonusStatusInfo = () => {
+    const expired = isExpired(bonus.end_date)
+    const salesInsufficient = isSalesInsufficient()
+    const discountFinished = bonus.client_discount_amount <= 0
+
+    if (expired) {
+      return {
+        label: "Muddati o'tgan",
+        className: 'bg-red-100 text-red-800',
+        description: 'Bonus muddati tugagan',
+      }
+    }
+
+    if (salesInsufficient) {
+      const targetAmount = bonus.bonus_type?.target_amount || 0
+      let clientAmount = 0
+      let amountLabel = 'savdo'
+
+      // Bonus type ga qarab to'g'ri amount va label ni olish
+      if (bonus.type === 'SERVICE') {
+        clientAmount = bonus.client?.total_service_amount || 0
+        amountLabel = 'servis savdosi'
+      } else if (bonus.type === 'RENT') {
+        clientAmount = bonus.client?.total_rent_amount || 0
+        amountLabel = 'ijara savdosi'
+      } else if (bonus.type === 'SALE') {
+        clientAmount = bonus.client?.total_sale_amount || 0
+        amountLabel = 'sotuv savdosi'
+      }
+
+      return {
+        label: 'Savdo yetarli emas',
+        className: 'bg-orange-100 text-orange-800',
+        description: `Bonusdan foydalanish uchun ${targetAmount.toLocaleString('uz-UZ')} so'm ${amountLabel} kerak. Hozirgi ${amountLabel}: ${clientAmount.toLocaleString('uz-UZ')} so'm`,
+      }
+    }
+
+    if (discountFinished) {
+      return {
+        label: 'Tugagan',
+        className: 'bg-yellow-100 text-yellow-800',
+        description: "Chegirma to'liq ishlatilgan",
+      }
+    }
+
+    return {
+      label: 'Faol',
+      className: 'bg-green-100 text-green-800',
+      description: 'Bonusdan foydalanish mumkin',
+    }
+  }
+
+  const bonusStatusInfo = getBonusStatusInfo()
   const expired = isExpired(bonus.end_date)
 
   return (
@@ -82,6 +153,26 @@ export default function ClientBonusDetailsModal({
               <InfoItem
                 title="Telefon raqami"
                 value={bonus.client.phone || 'Mavjud emas'}
+              />
+              <InfoItem
+                title={
+                  bonus.type === 'SERVICE'
+                    ? 'Jami servis savdosi'
+                    : bonus.type === 'RENT'
+                      ? 'Jami ijara savdosi'
+                      : 'Jami sotuv savdosi'
+                }
+                value={
+                  <span className="text-[#18181B] font-medium">
+                    {(bonus.type === 'SERVICE'
+                      ? bonus.client?.total_service_amount
+                      : bonus.type === 'RENT'
+                        ? bonus.client?.total_rent_amount
+                        : bonus.client?.total_sale_amount
+                    )?.toLocaleString('uz-UZ') || '0'}{' '}
+                    so'm
+                  </span>
+                }
               />
               <InfoItem
                 title="Kasbi"
@@ -164,15 +255,16 @@ export default function ClientBonusDetailsModal({
               <InfoItem
                 title="Holati"
                 value={
-                  expired ? (
-                    <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800">
-                      Muddati o'tgan
+                  <div className="space-y-1">
+                    <span
+                      className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${bonusStatusInfo.className}`}
+                    >
+                      {bonusStatusInfo.label}
                     </span>
-                  ) : (
-                    <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                      Faol
-                    </span>
-                  )
+                    <p className="text-xs text-gray-600 mt-1">
+                      {bonusStatusInfo.description}
+                    </p>
+                  </div>
                 }
               />
               <InfoItem

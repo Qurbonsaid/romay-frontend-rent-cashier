@@ -81,7 +81,7 @@ function ProductPage() {
 
   const formatUsd = (value: string) => {
     const num = Number(String(value).replace(/[^0-9]/g, '')) || 0
-    return num.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+    return num.toLocaleString('uz-UZ') + " so'm"
   }
 
   const getCategoryName = (

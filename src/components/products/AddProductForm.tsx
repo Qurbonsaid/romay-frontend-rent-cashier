@@ -78,7 +78,7 @@ export function AddProductForm({
         category_id: values.category,
         price: values.price,
         status: 'active',
-        currency: 'USD',
+        currency: 'UZS',
         images: values.images,
         barcode: values.sku,
         attributes: [],
@@ -182,7 +182,7 @@ export function AddProductForm({
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Narx (USD) *</FormLabel>
+                    <FormLabel>Narx (so'm) *</FormLabel>
                     <FormControl>
                       <NumberInput
                         allowDecimals={true}

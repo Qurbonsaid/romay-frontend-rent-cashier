@@ -59,7 +59,7 @@ const getCategoryName = (
 
 const formatUsd = (price: string): string => {
   const numericPrice = parseFloat(price.replace(/[^0-9.]/g, ''))
-  return `$${numericPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+  return `${numericPrice.toLocaleString('uz-UZ')} so'm`
 }
 
 export function ProductGrid({

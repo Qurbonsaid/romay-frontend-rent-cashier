@@ -45,11 +45,14 @@ export function CustomBarChart({
           />
           <YAxis
             label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }}
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => `${value.toLocaleString('uz-UZ')} so'm`}
           />
           <Tooltip
-            formatter={(value) => [`$${value}`, 'Amount']}
-            labelFormatter={(label) => `Month: ${label}`}
+            formatter={(value) => [
+              `${value.toLocaleString('uz-UZ')} so'm`,
+              'Summa',
+            ]}
+            labelFormatter={(label) => `Oy: ${label}`}
           />
           <Bar dataKey="value" fill={barColor} name="Amount" />
         </BarChart>

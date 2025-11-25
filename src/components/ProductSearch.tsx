@@ -49,8 +49,8 @@ export default function ProductSearch({
     setIsOpen(false)
   }
 
-  const formatPrice = (price: number, currency: string) => {
-    return `${price.toLocaleString()} ${currency}`
+  const formatPrice = (price: number) => {
+    return `${price.toLocaleString('uz-UZ')} so'm`
   }
 
   useEffect(() => {
@@ -119,10 +119,7 @@ export default function ProductSearch({
                       </TooltipContent>
                     </Tooltip>
                     <p className="text-sm text-gray-500">
-                      {formatPrice(
-                        product.product.price,
-                        product.product.currency
-                      )}
+                      {formatPrice(product.product.price)}
                     </p>
                     <p className="text-xs text-gray-400">
                       Mavjud: {product.product_count} dona

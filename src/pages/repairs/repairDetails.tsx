@@ -964,7 +964,7 @@ export default function RepairDetails() {
                   value={formatPaymentValue(payments.cash)}
                   onChange={(e) => handlePaymentChange('cash', e.target.value)}
                 />
-                <div className="text-xs text-gray-500">UZS</div>
+                <div className="text-xs text-gray-500">so'm</div>
               </div>
 
               {/* Plastic */}
@@ -981,7 +981,7 @@ export default function RepairDetails() {
                     handlePaymentChange('plastic', e.target.value)
                   }
                 />
-                <div className="text-xs text-gray-500">UZS</div>
+                <div className="text-xs text-gray-500">so'm</div>
               </div>
 
               {/* Terminal */}
@@ -998,7 +998,7 @@ export default function RepairDetails() {
                     handlePaymentChange('terminal', e.target.value)
                   }
                 />
-                <div className="text-xs text-gray-500">UZS</div>
+                <div className="text-xs text-gray-500">so'm</div>
               </div>
 
               {/* Bank */}
@@ -1013,7 +1013,7 @@ export default function RepairDetails() {
                   value={formatPaymentValue(payments.bank)}
                   onChange={(e) => handlePaymentChange('bank', e.target.value)}
                 />
-                <div className="text-xs text-gray-500">UZS</div>
+                <div className="text-xs text-gray-500">so'm</div>
               </div>
 
               {/* USD and EUR - Side by Side */}
@@ -1048,7 +1048,7 @@ export default function RepairDetails() {
                         placeholder="12 810"
                       />
                       <div className="text-xs text-gray-500 text-center mt-1">
-                        UZS
+                        so'm
                       </div>
                     </div>
                   </div>
@@ -1084,7 +1084,7 @@ export default function RepairDetails() {
                         placeholder="14 310"
                       />
                       <div className="text-xs text-gray-500 text-center mt-1">
-                        UZS
+                        so'm
                       </div>
                     </div>
                   </div>

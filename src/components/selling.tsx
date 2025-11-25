@@ -235,7 +235,7 @@ export default function Selling({ role = 'default' }: { role?: string }) {
               <div className="relative">
                 <Input className="py-2 px-3 pr-10" placeholder="0" />
                 <span className="absolute right-2 top-[10px] text-[14px] text-[#71717A]">
-                  UZS
+                  so'm
                 </span>
               </div>
             </div>
@@ -244,7 +244,7 @@ export default function Selling({ role = 'default' }: { role?: string }) {
               <div className="relative">
                 <Input className="py-2 px-3 pr-10" placeholder="0" />
                 <span className="absolute right-2 top-[10px] text-[14px] text-[#71717A]">
-                  UZS
+                  so'm
                 </span>
               </div>
             </div>
@@ -253,16 +253,16 @@ export default function Selling({ role = 'default' }: { role?: string }) {
               <div className="relative">
                 <Input className="py-2 px-3 pr-10" placeholder="0" />
                 <span className="absolute right-2 top-[10px] text-[14px] text-[#71717A]">
-                  UZS
+                  so'm
                 </span>
               </div>
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Bank (hisob raqamidan to’lov)</Label>
+              <Label>Bank (hisob raqamidan to'lov)</Label>
               <div className="relative">
                 <Input className="py-2 px-3 pr-10" placeholder="0" />
                 <span className="absolute right-2 top-[10px] text-[14px] text-[#71717A]">
-                  UZS
+                  so'm
                 </span>
               </div>
             </div>
@@ -279,7 +279,7 @@ export default function Selling({ role = 'default' }: { role?: string }) {
                 <div className="relative">
                   <Input className="py-2 px-3 pr-10" placeholder="0" />
                   <span className="absolute right-2 top-[10px] text-[14px] text-[#71717A]">
-                    UZS
+                    so'm
                   </span>
                 </div>
               </div>
@@ -297,7 +297,7 @@ export default function Selling({ role = 'default' }: { role?: string }) {
                 <div className="relative">
                   <Input className="py-2 px-3 pr-10" placeholder="0" />
                   <span className="absolute right-2 top-[10px] text-[14px] text-[#71717A]">
-                    UZS
+                    so'm
                   </span>
                 </div>
               </div>
@@ -315,12 +315,12 @@ export default function Selling({ role = 'default' }: { role?: string }) {
                 <>
                   <div className="flex items-center justify-between">
                     <span>Naqd: </span>
-                    <span>9 000 000 UZS</span>
+                    <span>9 000 000 so'm</span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span>Valyuta: </span>
-                    <span>125 USD (12 810)</span>
+                    <span>125 USD (12 810 so'm)</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Bank: </span>
@@ -340,17 +340,17 @@ export default function Selling({ role = 'default' }: { role?: string }) {
             <div>
               <div className="text-[20px] font-semibold flex items-center justify-between">
                 <span>Jami:</span>
-                <span>{total.toLocaleString()} UZS</span>
+                <span>{total.toLocaleString('uz-UZ')} so'm</span>
               </div>
               {role !== 'branch' && (
                 <>
                   <div className="text-[20px] font-semibold flex items-center justify-between">
                     <span>Berildi:</span>
-                    <span className="text-green-600">8 250 000 UZS</span>
+                    <span className="text-green-600">8 250 000 so'm</span>
                   </div>
                   <div className="text-[20px] font-semibold flex items-center justify-between">
                     <span>Qarz:</span>
-                    <span className="text-[#DC3E42]">200 000 UZS</span>
+                    <span className="text-[#DC3E42]">200 000 so'm</span>
                   </div>
                 </>
               )}

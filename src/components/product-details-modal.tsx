@@ -49,15 +49,15 @@ type ProductDetailsModalProps = {
     | null
 }
 
-const formatPrice = (price?: string | number, currency?: string) => {
-  if (price == null) return '0.00 USD'
+const formatPrice = (price?: string | number) => {
+  if (price == null) return "0 so'm"
 
   const numericPrice =
     typeof price === 'string'
       ? parseFloat(price.replace(/[^0-9.]/g, ''))
       : price
 
-  return `${numericPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })} ${currency || 'USD'}`
+  return `${numericPrice.toLocaleString('uz-UZ')} so'm`
 }
 
 const getProductName = (
@@ -108,19 +108,6 @@ const getProductPrice = (
     return product.product.price
   }
   return 0
-}
-
-const getProductCurrency = (
-  product: ProductWarehouseItem | RentProductWarehouseItem | ServiceProduct
-): string => {
-  if (
-    typeof product.product === 'object' &&
-    product.product &&
-    'currency' in product.product
-  ) {
-    return product.product.currency || 'UZS'
-  }
-  return 'UZS'
 }
 
 const getProductCategory = (
@@ -208,7 +195,6 @@ export default function ProductDetailsModal({
   const productName = getProductName(product)
   const productCount = getProductCount(product)
   const productPrice = getProductPrice(product)
-  const productCurrency = getProductCurrency(product)
   const productCategory = getProductCategory(product)
   const productCreatedAt = getProductCreatedAt(product)
   const productBarcode = getProductBarcode(product)
@@ -290,19 +276,16 @@ export default function ProductDetailsModal({
                       return (
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-sm text-red-500 line-through">
-                            {formatPrice(originalPrice, productCurrency)}
+                            {formatPrice(originalPrice)}
                           </span>
                           <span>
-                            {formatPrice(
-                              product.product_change_price,
-                              productCurrency
-                            )}
+                            {formatPrice(product.product_change_price)}
                           </span>
                         </div>
                       )
                     }
                   }
-                  return formatPrice(productPrice, productCurrency)
+                  return formatPrice(productPrice)
                 })()}
               </div>
             </div>
@@ -337,17 +320,14 @@ export default function ProductDetailsModal({
                       return (
                         <div className="flex flex-col items-center gap-1">
                           <span className="text-sm text-red-500 line-through">
-                            {formatPrice(originalTotal, productCurrency)}
+                            {formatPrice(originalTotal)}
                           </span>
-                          <span>{formatPrice(newTotal, productCurrency)}</span>
+                          <span>{formatPrice(newTotal)}</span>
                         </div>
                       )
                     }
                   }
-                  return formatPrice(
-                    productPrice * productCount,
-                    productCurrency
-                  )
+                  return formatPrice(productPrice * productCount)
                 })()}
               </div>
             </div>

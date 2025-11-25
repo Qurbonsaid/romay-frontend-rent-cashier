@@ -80,7 +80,7 @@ export default function Rating({
                       </td>
                     </tr>
                     <td className="px-4 py-4 whitespace-nowrap text-[14px] text-[#18181B]">
-                      ${transaction.amount.toFixed(2)}
+                      {transaction.amount.toLocaleString('uz-UZ')} so'm
                     </td>
                   </tr>
                 ))}
