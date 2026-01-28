@@ -1,5 +1,5 @@
 import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, UserPlus } from 'lucide-react'
 import type { UseFormReturn } from 'react-hook-form'
 import { cn } from '@/lib/utils'
 import { formatCurrency, formatNumberInput } from '@/utils/numberFormat'
@@ -51,6 +51,9 @@ interface ServiceFormFieldsProps {
   setSelectedClient: (client: Client | null) => void
   selectedClient: Client | null
 
+  // Add client callback
+  onAddClient?: () => void
+
   // Mechanics data
   mechanicsData?: { data: Mechanic[] }
   mechanicsLoading: boolean
@@ -80,6 +83,7 @@ export default function ServiceFormFields({
   setClientSearch,
   setSelectedClient,
   selectedClient,
+  onAddClient,
   mechanicsData,
   mechanicsLoading,
   salaryDisplay,
@@ -99,7 +103,21 @@ export default function ServiceFormFields({
         name="client_id"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Mijoz *</FormLabel>
+            <div className="flex items-center justify-between">
+              <FormLabel>Mijoz *</FormLabel>
+              {onAddClient && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={onAddClient}
+                  className="h-7 text-xs gap-1"
+                >
+                  <UserPlus className="h-3.5 w-3.5" />
+                  Mijoz qo'shish
+                </Button>
+              )}
+            </div>
             <Select
               onValueChange={(value) => {
                 field.onChange(value)

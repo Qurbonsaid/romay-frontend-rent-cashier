@@ -21,6 +21,788 @@
           "scheme": "bearer",
           "bearerFormat": "JWT"
         }
+      },
+      "schemas": {
+        "CeoStatsResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "finance": {
+                  "type": "object",
+                  "properties": {
+                    "income": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number",
+                          "description": "Umumiy tushum"
+                        },
+                        "sales": {
+                          "type": "number",
+                          "description": "Sotuvlardan tushum"
+                        },
+                        "rent": {
+                          "type": "number",
+                          "description": "Ijaradan tushum"
+                        },
+                        "service": {
+                          "type": "number",
+                          "description": "Xizmatlardan tushum"
+                        }
+                      }
+                    },
+                    "expense": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number",
+                          "description": "Umumiy xarajat"
+                        },
+                        "supplier_product": {
+                          "type": "number",
+                          "description": "Yetkazib beruvchilarga to'lov"
+                        },
+                        "staff_salary": {
+                          "type": "number",
+                          "description": "Xodimlar maoshi"
+                        }
+                      }
+                    },
+                    "profit": {
+                      "type": "number",
+                      "description": "Sof foyda (income - expense)"
+                    },
+                    "balance": {
+                      "type": "object",
+                      "properties": {
+                        "ceo": {
+                          "type": "number",
+                          "description": "CEO balansi"
+                        },
+                        "branches_total": {
+                          "type": "number",
+                          "description": "Filiallar umumiy balansi"
+                        },
+                        "branches_sales": {
+                          "type": "number",
+                          "description": "Filiallar sotuv balansi"
+                        },
+                        "branches_service": {
+                          "type": "number",
+                          "description": "Filiallar xizmat balansi"
+                        },
+                        "main_warehouse": {
+                          "type": "number",
+                          "description": "Asosiy ombor balansi"
+                        },
+                        "total": {
+                          "type": "number",
+                          "description": "Jami balans"
+                        }
+                      }
+                    }
+                  }
+                },
+                "debts": {
+                  "type": "object",
+                  "properties": {
+                    "client_debts": {
+                      "type": "object",
+                      "properties": {
+                        "sale_debt": {
+                          "type": "number",
+                          "description": "Mijozlarning sotuv qarzlari"
+                        },
+                        "total_debt": {
+                          "type": "number",
+                          "description": "Mijozlarning umumiy qarzlari"
+                        }
+                      }
+                    },
+                    "supplier_debts": {
+                      "type": "object",
+                      "properties": {
+                        "product_supplier": {
+                          "type": "number",
+                          "description": "Mahsulot yetkazib beruvchilarga qarz"
+                        },
+                        "rental_supplier": {
+                          "type": "number",
+                          "description": "Ijara yetkazib beruvchilarga qarz"
+                        },
+                        "total": {
+                          "type": "number",
+                          "description": "Umumiy yetkazib beruvchi qarzlari"
+                        }
+                      }
+                    }
+                  }
+                },
+                "sales": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "description": "Jami sotuvlar soni"
+                    },
+                    "total_amount": {
+                      "type": "number",
+                      "description": "Jami sotuv summasi"
+                    },
+                    "original_total_amount": {
+                      "type": "number",
+                      "description": "Asl sotuv summasi"
+                    },
+                    "paid_amount": {
+                      "type": "number",
+                      "description": "To'langan summa"
+                    },
+                    "debt_amount": {
+                      "type": "number",
+                      "description": "Qarz summasi"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer",
+                          "description": "Tugallangan"
+                        },
+                        "in_progress": {
+                          "type": "integer",
+                          "description": "Jarayonda"
+                        },
+                        "cancelled": {
+                          "type": "integer",
+                          "description": "Bekor qilingan"
+                        }
+                      }
+                    }
+                  }
+                },
+                "rent": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "description": "Jami ijaralar soni"
+                    },
+                    "total_rent_price": {
+                      "type": "number",
+                      "description": "Jami ijara narxi"
+                    },
+                    "total_paid": {
+                      "type": "number",
+                      "description": "To'langan summa"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        },
+                        "cancelled": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "service": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "description": "Jami xizmatlar soni"
+                    },
+                    "total_amount": {
+                      "type": "number",
+                      "description": "Jami xizmat summasi"
+                    },
+                    "total_paid": {
+                      "type": "number",
+                      "description": "To'langan summa"
+                    },
+                    "total_mechanic_salary": {
+                      "type": "number",
+                      "description": "Mexaniklarga to'langan maosh"
+                    },
+                    "total_discount": {
+                      "type": "number",
+                      "description": "Jami chegirma"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        },
+                        "cancelled": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "clients": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "description": "Jami mijozlar soni"
+                    },
+                    "by_tier": {
+                      "type": "object",
+                      "description": "Darajalar bo'yicha mijozlar"
+                    },
+                    "total_sale_amount": {
+                      "type": "number"
+                    },
+                    "total_rent_amount": {
+                      "type": "number"
+                    },
+                    "total_service_amount": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "employees": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "description": "Jami xodimlar soni"
+                    },
+                    "by_role": {
+                      "type": "object",
+                      "description": "Rollar bo'yicha xodimlar"
+                    },
+                    "managers": {
+                      "type": "integer"
+                    },
+                    "rent_cashiers": {
+                      "type": "integer"
+                    },
+                    "sale_cashiers": {
+                      "type": "integer"
+                    },
+                    "storekeepers": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "mechanics": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer",
+                      "description": "Jami mexaniklar soni"
+                    },
+                    "by_type": {
+                      "type": "object",
+                      "properties": {
+                        "service": {
+                          "type": "integer"
+                        },
+                        "field_service": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "total_service_count": {
+                      "type": "integer",
+                      "description": "Jami bajarilgan xizmatlar"
+                    }
+                  }
+                },
+                "sales_assistants": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "total_sales_count": {
+                      "type": "integer"
+                    },
+                    "total_sales_amount": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "suppliers": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "by_type": {
+                      "type": "object",
+                      "properties": {
+                        "product_supplier": {
+                          "type": "integer"
+                        },
+                        "rental_supplier": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "total_product_count": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "inventory": {
+                  "type": "object",
+                  "properties": {
+                    "branches": {
+                      "type": "object",
+                      "properties": {
+                        "sale_products": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "type": "integer"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "rent_products": {
+                          "type": "object",
+                          "properties": {
+                            "total_count": {
+                              "type": "integer"
+                            },
+                            "active_count": {
+                              "type": "integer"
+                            },
+                            "rented_count": {
+                              "type": "integer"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "main_warehouse": {
+                      "type": "object",
+                      "properties": {
+                        "sale_products": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "type": "integer"
+                            },
+                            "value": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "rent_products": {
+                          "type": "object",
+                          "properties": {
+                            "count": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "total_inventory_value": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "branches": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "description": "Filiallar soni"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ManagerStatsResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "branch": {
+                  "type": "object",
+                  "properties": {
+                    "_id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "sales_balance": {
+                      "type": "number"
+                    },
+                    "service_balance": {
+                      "type": "number"
+                    },
+                    "total_balance": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "finance": {
+                  "type": "object",
+                  "properties": {
+                    "income": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "sales": {
+                          "type": "number"
+                        },
+                        "rent": {
+                          "type": "number"
+                        },
+                        "service": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "balance": {
+                      "type": "object",
+                      "properties": {
+                        "sales": {
+                          "type": "number"
+                        },
+                        "service": {
+                          "type": "number"
+                        },
+                        "total": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                },
+                "sales": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "total_amount": {
+                      "type": "number"
+                    },
+                    "paid_amount": {
+                      "type": "number"
+                    },
+                    "debt_amount": {
+                      "type": "number"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "rent": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "total_rent_price": {
+                      "type": "number"
+                    },
+                    "total_paid": {
+                      "type": "number"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "service": {
+                  "type": "object",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "total_amount": {
+                      "type": "number"
+                    },
+                    "total_paid": {
+                      "type": "number"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "employees": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "by_role": {
+                      "type": "object"
+                    }
+                  }
+                },
+                "mechanics": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "total_service_count": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "sales_assistants": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer"
+                    },
+                    "total_sales_count": {
+                      "type": "integer"
+                    },
+                    "total_sales_amount": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "clients": {
+                  "type": "object",
+                  "properties": {
+                    "total": {
+                      "type": "integer"
+                    },
+                    "total_debt": {
+                      "type": "number"
+                    },
+                    "total_sale_amount": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "inventory": {
+                  "type": "object",
+                  "properties": {
+                    "sale_products": {
+                      "type": "object",
+                      "properties": {
+                        "count": {
+                          "type": "integer"
+                        },
+                        "value": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "rent_products": {
+                      "type": "object",
+                      "properties": {
+                        "total_count": {
+                          "type": "integer"
+                        },
+                        "active_count": {
+                          "type": "integer"
+                        },
+                        "value": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "SaleCashierStatsResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "my_sales": {
+                  "type": "object",
+                  "description": "Kassirning o'z sotuvlari",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "description": "Jami sotuvlar soni"
+                    },
+                    "total_amount": {
+                      "type": "number",
+                      "description": "Jami sotuv summasi"
+                    },
+                    "paid_amount": {
+                      "type": "number",
+                      "description": "To'langan summa"
+                    },
+                    "debt_amount": {
+                      "type": "number",
+                      "description": "Qarz summasi"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "branch_sales": {
+                  "type": "object",
+                  "description": "Filialning barcha sotuvlari",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer"
+                    },
+                    "total_amount": {
+                      "type": "number"
+                    },
+                    "paid_amount": {
+                      "type": "number"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "RentCashierStatsResponse": {
+          "type": "object",
+          "properties": {
+            "success": {
+              "type": "boolean",
+              "example": true
+            },
+            "data": {
+              "type": "object",
+              "properties": {
+                "rent": {
+                  "type": "object",
+                  "description": "Ijara statistikasi",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "description": "Jami ijaralar soni"
+                    },
+                    "total_rent_price": {
+                      "type": "number",
+                      "description": "Jami ijara narxi"
+                    },
+                    "total_paid": {
+                      "type": "number",
+                      "description": "To'langan summa"
+                    },
+                    "by_status": {
+                      "type": "object",
+                      "properties": {
+                        "completed": {
+                          "type": "integer"
+                        },
+                        "in_progress": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                },
+                "inventory": {
+                  "type": "object",
+                  "description": "Ijara mahsulotlari statistikasi",
+                  "properties": {
+                    "total_count": {
+                      "type": "integer",
+                      "description": "Jami mahsulotlar soni"
+                    },
+                    "active_count": {
+                      "type": "integer",
+                      "description": "Faol (ijaraga tayyor) mahsulotlar"
+                    },
+                    "rented_count": {
+                      "type": "integer",
+                      "description": "Hozirda ijarada bo'lgan mahsulotlar"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
     "security": [
@@ -186,9 +968,353 @@
       "/dashboard/stats": {
         "get": {
           "summary": "Get dashboard statistics",
-          "description": "Returns statistics based on the authenticated user's role (CEO, Manager, Employee, etc.)",
+          "description": "Foydalanuvchi roliga qarab (CEO, Manager, Sale Cashier, Rent Cashier) statistik ma'lumotlarni qaytaradi. CEO - butun kompaniya statistikasi, Manager - filial statistikasi, Sale Cashier - sotuv statistikasi, Rent Cashier - ijara statistikasi.",
           "tags": ["Dashboard"],
-          "responses": {}
+          "parameters": [
+            {
+              "name": "period",
+              "in": "query",
+              "required": false,
+              "schema": {
+                "type": "string",
+                "enum": ["today", "week", "month", "year"],
+                "default": "month"
+              },
+              "description": "Statistika oralig'i: today - bugun, week - shu hafta, month - shu oy, year - shu yil"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Muvaffaqiyatli javob",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/CeoStatsResponse"
+                      },
+                      {
+                        "$ref": "#/components/schemas/ManagerStatsResponse"
+                      },
+                      {
+                        "$ref": "#/components/schemas/SaleCashierStatsResponse"
+                      },
+                      {
+                        "$ref": "#/components/schemas/RentCashierStatsResponse"
+                      }
+                    ]
+                  },
+                  "examples": {
+                    "ceo": {
+                      "summary": "CEO statistikasi",
+                      "value": {
+                        "success": true,
+                        "data": {
+                          "finance": {
+                            "income": {
+                              "total": 150000000,
+                              "sales": 80000000,
+                              "rent": 50000000,
+                              "service": 20000000
+                            },
+                            "expense": {
+                              "total": 30000000,
+                              "supplier_product": 25000000,
+                              "staff_salary": 5000000
+                            },
+                            "profit": 120000000,
+                            "balance": {
+                              "ceo": 50000000,
+                              "branches_total": 30000000,
+                              "branches_sales": 20000000,
+                              "branches_service": 10000000,
+                              "main_warehouse": 15000000,
+                              "total": 95000000
+                            }
+                          },
+                          "debts": {
+                            "client_debts": {
+                              "sale_debt": 5000000,
+                              "total_debt": 7000000
+                            },
+                            "supplier_debts": {
+                              "product_supplier": 10000000,
+                              "rental_supplier": 3000000,
+                              "total": 13000000
+                            }
+                          },
+                          "sales": {
+                            "total_count": 150,
+                            "total_amount": 85000000,
+                            "original_total_amount": 90000000,
+                            "paid_amount": 80000000,
+                            "debt_amount": 5000000,
+                            "by_status": {
+                              "completed": 120,
+                              "in_progress": 25,
+                              "cancelled": 5
+                            }
+                          },
+                          "rent": {
+                            "total_count": 80,
+                            "total_rent_price": 55000000,
+                            "total_paid": 50000000,
+                            "by_status": {
+                              "completed": 60,
+                              "in_progress": 18,
+                              "cancelled": 2
+                            }
+                          },
+                          "service": {
+                            "total_count": 45,
+                            "total_amount": 22000000,
+                            "total_paid": 20000000,
+                            "total_mechanic_salary": 3000000,
+                            "total_discount": 500000,
+                            "by_status": {
+                              "completed": 35,
+                              "in_progress": 8,
+                              "cancelled": 2
+                            }
+                          },
+                          "clients": {
+                            "total": 500,
+                            "by_tier": {
+                              "premium": 50,
+                              "standard": 200,
+                              "basic": 250
+                            },
+                            "total_sale_amount": 80000000,
+                            "total_rent_amount": 50000000,
+                            "total_service_amount": 20000000
+                          },
+                          "employees": {
+                            "total": 25,
+                            "by_role": {
+                              "manager": 5,
+                              "rent_cashier": 8,
+                              "sale_cashier": 10,
+                              "storekeeper": 2
+                            },
+                            "managers": 5,
+                            "rent_cashiers": 8,
+                            "sale_cashiers": 10,
+                            "storekeepers": 2
+                          },
+                          "mechanics": {
+                            "total": 12,
+                            "by_type": {
+                              "service": 8,
+                              "field_service": 4
+                            },
+                            "total_service_count": 450
+                          },
+                          "sales_assistants": {
+                            "total": 15,
+                            "total_sales_count": 1200,
+                            "total_sales_amount": 75000000
+                          },
+                          "suppliers": {
+                            "total": 20,
+                            "by_type": {
+                              "product_supplier": 12,
+                              "rental_supplier": 8
+                            },
+                            "total_product_count": 5000
+                          },
+                          "inventory": {
+                            "branches": {
+                              "sale_products": {
+                                "count": 2500,
+                                "value": 120000000
+                              },
+                              "rent_products": {
+                                "total_count": 800,
+                                "active_count": 600,
+                                "rented_count": 200,
+                                "value": 80000000
+                              }
+                            },
+                            "main_warehouse": {
+                              "sale_products": {
+                                "count": 3000,
+                                "value": 150000000
+                              },
+                              "rent_products": {
+                                "count": 500
+                              }
+                            },
+                            "total_inventory_value": 350000000
+                          },
+                          "branches": {
+                            "count": 5
+                          }
+                        }
+                      }
+                    },
+                    "manager": {
+                      "summary": "Manager statistikasi",
+                      "value": {
+                        "success": true,
+                        "data": {
+                          "branch": {
+                            "_id": "64f1a0fcefd2bb1a0b22b9f5",
+                            "name": "Toshkent filiali",
+                            "sales_balance": 5000000,
+                            "service_balance": 2000000,
+                            "total_balance": 7000000
+                          },
+                          "finance": {
+                            "income": {
+                              "total": 30000000,
+                              "sales": 16000000,
+                              "rent": 10000000,
+                              "service": 4000000
+                            },
+                            "balance": {
+                              "sales": 5000000,
+                              "service": 2000000,
+                              "total": 7000000
+                            }
+                          },
+                          "sales": {
+                            "total_count": 30,
+                            "total_amount": 17000000,
+                            "paid_amount": 16000000,
+                            "debt_amount": 1000000,
+                            "by_status": {
+                              "completed": 24,
+                              "in_progress": 6
+                            }
+                          },
+                          "rent": {
+                            "total_count": 16,
+                            "total_rent_price": 11000000,
+                            "total_paid": 10000000,
+                            "by_status": {
+                              "completed": 12,
+                              "in_progress": 4
+                            }
+                          },
+                          "service": {
+                            "total_count": 9,
+                            "total_amount": 4400000,
+                            "total_paid": 4000000,
+                            "by_status": {
+                              "completed": 7,
+                              "in_progress": 2
+                            }
+                          },
+                          "employees": {
+                            "total": 5,
+                            "by_role": {
+                              "rent_cashier": 2,
+                              "sale_cashier": 2,
+                              "storekeeper": 1
+                            }
+                          },
+                          "mechanics": {
+                            "total": 3,
+                            "total_service_count": 90
+                          },
+                          "sales_assistants": {
+                            "count": 3,
+                            "total_sales_count": 240,
+                            "total_sales_amount": 15000000
+                          },
+                          "clients": {
+                            "total": 100,
+                            "total_debt": 1400000,
+                            "total_sale_amount": 16000000
+                          },
+                          "inventory": {
+                            "sale_products": {
+                              "count": 500,
+                              "value": 24000000
+                            },
+                            "rent_products": {
+                              "total_count": 160,
+                              "active_count": 120,
+                              "value": 16000000
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "sale_cashier": {
+                      "summary": "Sale Cashier statistikasi",
+                      "value": {
+                        "success": true,
+                        "data": {
+                          "my_sales": {
+                            "total_count": 15,
+                            "total_amount": 8500000,
+                            "paid_amount": 8000000,
+                            "debt_amount": 500000,
+                            "by_status": {
+                              "completed": 12,
+                              "in_progress": 3
+                            }
+                          },
+                          "branch_sales": {
+                            "total_count": 30,
+                            "total_amount": 17000000,
+                            "paid_amount": 16000000,
+                            "by_status": {
+                              "completed": 24,
+                              "in_progress": 6
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "rent_cashier": {
+                      "summary": "Rent Cashier statistikasi",
+                      "value": {
+                        "success": true,
+                        "data": {
+                          "rent": {
+                            "total_count": 16,
+                            "total_rent_price": 11000000,
+                            "total_paid": 10000000,
+                            "by_status": {
+                              "completed": 12,
+                              "in_progress": 4
+                            }
+                          },
+                          "inventory": {
+                            "total_count": 160,
+                            "active_count": 120,
+                            "rented_count": 40
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Avtorizatsiya xatosi",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean",
+                        "example": false
+                      },
+                      "message": {
+                        "type": "string",
+                        "example": "Unauthorized"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       },
       "/sales/add": {
@@ -7230,6 +8356,10 @@
                           }
                         }
                       }
+                    },
+                    "discount": {
+                      "type": "number",
+                      "example": 50000
                     }
                   },
                   "required": ["payment", "payment_type"]

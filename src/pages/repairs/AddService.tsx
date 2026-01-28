@@ -16,6 +16,7 @@ import ProductSelectionTable from '@/components/repairs/ProductSelectionTable'
 import SelectedProductsList from '@/components/repairs/SelectedProductsList'
 import ServiceFormFields from '@/components/repairs/ServiceFormFields'
 import ServiceSummary from '@/components/repairs/ServiceSummary'
+import AddClientModal from '@/components/AddClientModal'
 
 // API and Types
 import { useAddServiceMutation } from '@/store/service/service.api'
@@ -105,6 +106,9 @@ export default function AddService() {
   const [clientSearch, setClientSearch] = useState('')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [salaryDisplay, setSalaryDisplay] = useState('')
+
+  // State for Add Client Modal
+  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false)
 
   // State for tracking price changes
   const [hasPriceChanges, setHasPriceChanges] = useState(false)
@@ -417,6 +421,7 @@ export default function AddService() {
                   setClientSearch={setClientSearch}
                   setSelectedClient={setSelectedClient}
                   selectedClient={selectedClient}
+                  onAddClient={() => setIsAddClientModalOpen(true)}
                   mechanicsData={mechanicsData}
                   mechanicsLoading={mechanicsLoading}
                   salaryDisplay={salaryDisplay}
@@ -457,6 +462,20 @@ export default function AddService() {
         onUpdateQuantity={updateProductCount}
         onUpdatePrice={updateProductPrice}
         availableProducts={availableProducts}
+      />
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        isOpen={isAddClientModalOpen}
+        onClose={() => setIsAddClientModalOpen(false)}
+        branchId={branch?._id || ''}
+        onClientAdded={(newClient) => {
+          // Select the newly added client
+          if (newClient?._id) {
+            form.setValue('client_id', newClient._id)
+            setSelectedClient(newClient)
+          }
+        }}
       />
     </div>
   )
