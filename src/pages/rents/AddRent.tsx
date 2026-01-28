@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { ArrowLeft, CalendarIcon } from 'lucide-react'
+import { ArrowLeft, CalendarIcon, UserPlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 // UI Components
@@ -38,6 +38,7 @@ import { Textarea } from '@/components/ui/textarea'
 // Custom Components
 import ProductSelectionTable from '@/components/rentals/ProductSelectionTable'
 import SelectedProductsList from '@/components/rentals/SelectedProductsList'
+import AddClientModal from '@/components/AddClientModal'
 
 // API and Types
 import { useAddRentMutation } from '@/store/rent/rent.api'
@@ -86,6 +87,9 @@ export default function AddRent() {
   }>({})
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [clientSearch, setClientSearch] = useState('')
+
+  // State for Add Client Modal
+  const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false)
 
   // State for tracking price changes
   const [hasPriceChanges, setHasPriceChanges] = useState(false)
@@ -417,7 +421,19 @@ export default function AddRent() {
                   name="client"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mijoz *</FormLabel>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Mijoz *</FormLabel>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setIsAddClientModalOpen(true)}
+                          className="h-7 text-xs gap-1"
+                        >
+                          <UserPlus className="h-3.5 w-3.5" />
+                          Mijoz qo'shish
+                        </Button>
+                      </div>
                       <Select
                         onValueChange={(value) => {
                           field.onChange(value)
@@ -688,6 +704,21 @@ export default function AddRent() {
         onUpdateQuantity={updateProductCount}
         onUpdatePrice={updateProductPrice}
         availableProducts={availableProducts as any}
+      />
+
+      {/* Add Client Modal */}
+      <AddClientModal
+        isOpen={isAddClientModalOpen}
+        onClose={() => setIsAddClientModalOpen(false)}
+        branchId={branch?._id || ''}
+        onClientAdded={(newClient) => {
+          // Select the newly added client
+          if (newClient?._id) {
+            form.setValue('client', newClient._id)
+            form.setValue('client_name', newClient.username)
+            setSelectedClient(newClient)
+          }
+        }}
       />
     </div>
   )
