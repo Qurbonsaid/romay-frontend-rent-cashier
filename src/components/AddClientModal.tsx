@@ -35,7 +35,6 @@ import {
 
 // API
 import { useAddClientMutation } from '@/store/clients/clients.api'
-import type { Client } from '@/types/clients.d'
 
 // Validation schema for adding client
 const addClientSchema = z.object({
@@ -63,7 +62,7 @@ interface AddClientModalProps {
   isOpen: boolean
   onClose: () => void
   branchId: string
-  onClientAdded?: (client: Client) => void
+  onClientAdded?: (clientPhone: string) => void
 }
 
 export default function AddClientModal({
@@ -103,7 +102,7 @@ export default function AddClientModal({
         }
       }
 
-      const result = await addClient({
+      await addClient({
         username: data.username,
         phone: formattedPhone,
         profession: data.profession,
@@ -115,10 +114,9 @@ export default function AddClientModal({
 
       toast.success("Mijoz muvaffaqiyatli qo'shildi!")
 
-      // If we have a callback and the result contains the new client
-      if (onClientAdded && result) {
-        // The API might return the new client data
-        onClientAdded(result as unknown as Client)
+      // Callback'ga telefon raqamini uzatamiz - parent component bu orqali yangi mijozni topadi
+      if (onClientAdded) {
+        onClientAdded(formattedPhone)
       }
 
       handleClose()

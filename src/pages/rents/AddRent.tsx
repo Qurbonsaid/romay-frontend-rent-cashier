@@ -90,6 +90,7 @@ export default function AddRent() {
 
   // State for Add Client Modal
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false)
+  const [newClientPhone, setNewClientPhone] = useState<string | null>(null)
 
   // State for tracking price changes
   const [hasPriceChanges, setHasPriceChanges] = useState(false)
@@ -124,7 +125,11 @@ export default function AddRent() {
   // Check permissions
   const canAddRent = CheckRole(userRole, ['rent_cashier'])
 
-  const { data: clientsData, isLoading: clientsLoading } = useGetClientsQuery(
+  const {
+    data: clientsData,
+    isLoading: clientsLoading,
+    refetch: refetchClients,
+  } = useGetClientsQuery(
     {
       search: clientSearch,
       branch_id: branch?._id,
@@ -143,6 +148,21 @@ export default function AddRent() {
     })
 
   const [addRent, { isLoading: isSubmitting }] = useAddRentMutation()
+
+  // Effect to auto-select newly added client
+  useEffect(() => {
+    if (newClientPhone && clientsData?.data) {
+      const newClient = clientsData.data.find(
+        (client) => client.phone === newClientPhone
+      )
+      if (newClient) {
+        form.setValue('client', newClient._id)
+        form.setValue('client_name', newClient.username)
+        setSelectedClient(newClient)
+        setNewClientPhone(null) // Reset after selecting
+      }
+    }
+  }, [newClientPhone, clientsData, form])
 
   if (!canAddRent) {
     navigate('/dashboard')
@@ -711,13 +731,10 @@ export default function AddRent() {
         isOpen={isAddClientModalOpen}
         onClose={() => setIsAddClientModalOpen(false)}
         branchId={branch?._id || ''}
-        onClientAdded={(newClient) => {
-          // Select the newly added client
-          if (newClient?._id) {
-            form.setValue('client', newClient._id)
-            form.setValue('client_name', newClient.username)
-            setSelectedClient(newClient)
-          }
+        onClientAdded={(clientPhone) => {
+          // Telefon raqamini saqlab, mijozlar ro'yxatini qayta yuklaymiz
+          setNewClientPhone(clientPhone)
+          refetchClients()
         }}
       />
     </div>
